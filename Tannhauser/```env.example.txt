@@ -1,0 +1,6 @@
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=tannhauser
+DB_USER=tu_usuario
+DB_PASSWORD=tu_password

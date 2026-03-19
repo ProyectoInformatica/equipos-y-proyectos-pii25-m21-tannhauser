@@ -1,0 +1,6 @@
+sensor,total_wh,total_kwh,count
+sensor_humedad,73.2761,0.073276,386
+sensor_luz,379.0918,0.379092,386
+sensor_nevera,0.0122,1.2e-05,6
+sensor_puerta,0.0,0.0,0
+sensor_temperatura,464.9121,0.464912,3
