@@ -1,0 +1,27 @@
+ENLACE AL REPOSITORIO GITHUB
+
+Repositorio:
+https://github.com/ProyectoInformatica/equipos-y-proyectos-pii25-m21-tannhauser.git
+
+Rama individual del checkpoint:
+feature/biodinario-miguel
+
+Funcionalidad implementada:
+Sensor biodinario con dato numérico y dato alfanumérico.
+
+Archivos principales añadidos o modificados:
+- database/update_biodinario.sql
+- php/ingest_biodinario.php
+- arduino/SketchBiodinario_Tannhauser.ino
+- README.md
+- requirements.txt
+- .env.example
+- .gitignore
+
+Ejecución:
+1. Instalar dependencias con pip install -r requirements.txt.
+2. Configurar .env a partir de .env.example.
+3. Iniciar Apache en XAMPP.
+4. Ejecutar python main.py.
+5. Ejecutar database/update_biodinario.sql en phpMyAdmin.
+6. Copiar php/ingest_biodinario.php a C:\xampp\htdocs\tannhauser.
