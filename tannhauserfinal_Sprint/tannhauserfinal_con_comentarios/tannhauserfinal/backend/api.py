@@ -1,0 +1,162 @@
+import sys
+from pathlib import Path
+from typing import Optional, List
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+# Añadir la raíz del proyecto al path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+from models.db import get_connection
+from models.sensor_data_manager import SensorDataManager
+
+app = FastAPI(title="Tannhäuser API", version="1.0.0")
+
+sensor_manager = SensorDataManager()
+
+
+class ReadingIn(BaseModel):
+    sensor_name: str
+    value: str | float | int
+    source: Optional[str] = "esp32"
+
+
+class OrdinaryReadingIn(BaseModel):
+    numeric_value: int | float
+    text_value: str
+    source: Optional[str] = "esp32"
+
+
+class BatchReadingItem(BaseModel):
+    sensor_name: str
+    value: str | float | int
+
+
+class BatchReadingsIn(BaseModel):
+    source: Optional[str] = "esp32"
+    readings: List[BatchReadingItem]
+
+
+@app.get("/")
+def root():
+    return {"message": "Tannhäuser API funcionando"}
+
+
+@app.get("/health")
+def health():
+    conn = get_connection()
+
+    if not conn:
+        return {
+            "status": "error",
+            "database": "down",
+            "details": "No se pudo conectar con MySQL"
+        }
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DATABASE();")
+        db = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        return {
+            "status": "ok",
+            "database": "ok",
+            "details": f"Conexión correcta con la base de datos: {db[0]}"
+        }
+    except Exception as e:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+        return {
+            "status": "error",
+            "database": "down",
+            "details": str(e)
+        }
+
+
+@app.post("/ingest/readings")
+def ingest_reading(reading: ReadingIn):
+    try:
+        sensor_manager.guardar_lectura_sensor(
+            nombre_sensor=reading.sensor_name,
+            valor=reading.value,
+            source=reading.source or "esp32"
+        )
+
+        return {
+            "status": "ok",
+            "message": "Lectura recibida y guardada correctamente",
+            "data": {
+                "sensor_name": reading.sensor_name,
+                "value": reading.value,
+                "source": reading.source or "esp32"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": "No se pudo guardar la lectura",
+            "details": str(e)
+        }
+
+
+@app.post("/ingest/readings/batch")
+def ingest_readings_batch(batch: BatchReadingsIn):
+    try:
+        for item in batch.readings:
+            sensor_manager.guardar_lectura_sensor(
+                nombre_sensor=item.sensor_name,
+                valor=item.value,
+                source=batch.source or "esp32"
+            )
+
+        return {
+            "status": "ok",
+            "message": "Lecturas por lote guardadas correctamente",
+            "total": len(batch.readings),
+            "source": batch.source or "esp32"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": "No se pudieron guardar las lecturas por lote",
+            "details": str(e)
+        }
+
+@app.post("/ingest/ordinary")
+def ingest_ordinary_reading(reading: OrdinaryReadingIn):
+    """Recibe e inserta una lectura del sensor ordinario.
+
+    El sensor ordinario del ejercicio entrega dos valores en una misma lectura:
+    - numeric_value: valor numerico
+    - text_value: valor alfanumerico
+    """
+    try:
+        sensor_manager.guardar_lectura_sensor_ordinario(
+            valor_numerico=reading.numeric_value,
+            valor_alfanumerico=reading.text_value,
+            source=reading.source or "esp32"
+        )
+
+        return {
+            "status": "ok",
+            "message": "Lectura del sensor ordinario guardada correctamente",
+            "data": {
+                "sensor_name": "sensor_ordinario",
+                "numeric_value": reading.numeric_value,
+                "text_value": reading.text_value,
+                "source": reading.source or "esp32"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": "No se pudo guardar la lectura del sensor ordinario",
+            "details": str(e)
+        }
+
