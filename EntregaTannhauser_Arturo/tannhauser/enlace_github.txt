@@ -1,0 +1,13 @@
+ENLACE AL REPOSITORIO GITHUB
+
+Repositorio:
+https://github.com/ProyectoInformatica/equipos-y-proyectos-pii25-m21-tannhauser.git
+
+Rama de entrega:
+development
+
+Commit de entrega:
+Entrega Sprint 2
+
+Notas:
+El proyecto se ha subido a la rama development. En el repositorio se encuentra el proyecto completo, junto con los archivos necesarios para la entrega.
