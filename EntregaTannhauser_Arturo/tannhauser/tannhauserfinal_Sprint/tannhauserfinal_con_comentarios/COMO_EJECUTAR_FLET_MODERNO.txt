@@ -1,0 +1,34 @@
+PASOS PARA EJECUTAR LA APP CON FLET MODERNO
+
+1) Abre una terminal/CMD en esta carpeta:
+   tannhauserfinal_Sprint\tannhauserfinal_con_comentarios
+
+2) Ejecuta:
+   python -m venv .venv
+   .venv\Scripts\activate
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
+
+3) Revisa el fichero:
+   tannhauserfinal\.env
+
+   Ejemplo:
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_NAME=tannhauser
+   DB_USER=root
+   DB_PASSWORD=1234
+
+4) Importa tannhauser.sql en phpMyAdmin/MySQL.
+
+5) Arranca la aplicación:
+   cd tannhauserfinal
+   python main.py
+
+También puedes usar el archivo arrancar_app.bat.
+
+VERSIÓN ACTUALIZADA:
+- Flet fijado a 0.85.1.
+- Eliminado el entorno virtual antiguo incluido en el ZIP.
+- Añadido requirements.txt reproducible.
+- main.py adaptado para page.window.width/page.window.height de Flet moderno.
