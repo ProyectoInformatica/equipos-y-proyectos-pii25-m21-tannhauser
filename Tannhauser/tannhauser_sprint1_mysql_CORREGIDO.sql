@@ -289,12 +289,14 @@ SELECT
 FROM current_state cs
 JOIN devices d ON d.id = cs.device_id;
 
--- =============================
--- CONSULTAS DE COMPROBACIÓN RÁPIDA
--- =============================
--- SELECT * FROM vw_ultimas_lecturas;
--- SELECT * FROM vw_estado_actual;
--- SELECT nombre, email FROM users;
--- SELECT nombre, cantidad, precio FROM products;
--- SELECT event_type, title, event_time FROM events ORDER BY event_time DESC;
 
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sender_id BIGINT UNSIGNED NOT NULL,
+    receiver_id BIGINT UNSIGNED NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_chat_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_chat_receiver FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_chat_participants (sender_id, receiver_id)
+) ENGINE=InnoDB;

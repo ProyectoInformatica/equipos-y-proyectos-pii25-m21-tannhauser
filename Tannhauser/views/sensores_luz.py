@@ -1,10 +1,23 @@
 import flet as ft
 import threading
 import time
+from tannhauserfinal.controllers.luces_controller import LucesController    
 from controllers.sensor_controller import SensorController
 from models.session_manager import get_current_user
 from models.session_manager import get_panel_route_for_current_user
 
+controlador_luces = LucesController()
+def boton_encender_luces_click(e):
+    controlador_luces.encender_todas()
+    print("Las 4 luces han sido encendidas.")
+
+def boton_apagar_luces_click(e):
+    controlador_luces.apagar_todas()
+    print("Las 4 luces han sido apagadas.")
+
+def encender_luz_principal(e):
+    # Enciende solo el primer LED (índice 0)
+    controlador_luces.encender_luz(0)
 
 class SensoresLuzView(ft.View):
     def __init__(self, page: ft.Page, go):

@@ -3,6 +3,8 @@ import os
 
 from models.activity_log_manager import ActivityLogManager
 from models.sensor_data_manager import SensorDataManager
+from models.sensor_data_manager import adaptar_bbdd_nuevo_sensor
+from models.sensor_data_manager import db_insert_nuevo_sensor
 
 
 class FileManager:
@@ -42,6 +44,16 @@ class FileManager:
     def _crear_directorios(self):
         os.makedirs(self.BASE_PATH, exist_ok=True)
         os.makedirs(self.SENSORES_DIR, exist_ok=True)
+
+    def inicializar_tabla_nuevo_sensor(self):
+        adaptar_bbdd_nuevo_sensor()
+
+    def DatabaseInsert(self, nombre_sensor, dato_entero, dato_char):
+        """
+        Función obligatoria solicitada.
+        Actúa como puente hacia la base de datos.
+        """
+        db_insert_nuevo_sensor(nombre_sensor, dato_entero, dato_char)
 
     # --------- LOGS DE ACTIVIDAD (MYSQL) ---------
     def registrar_actividad(self, usuario, accion):

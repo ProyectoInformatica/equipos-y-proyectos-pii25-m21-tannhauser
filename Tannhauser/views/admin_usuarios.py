@@ -1,270 +1,386 @@
 import flet as ft
-from controllers.user_controller import UserController
 from controllers.auth_controller import AuthController
+from models.user_manager import UserManager
 from models.session_manager import get_current_user
 
 
 class AdminUsuariosView(ft.View):
     def __init__(self, page: ft.Page, go):
-        super().__init__(route="/admin_usuarios")
+        super().__init__(route="/admin_usuarios", padding=0, spacing=0)
         self.page = page
         self.go = go
-        self.uc = UserController()
         self.auth = AuthController()
+        self.manager = UserManager()
+        self.usuario_actual = get_current_user() or {}
+        self.rol_actual = (self.usuario_actual.get("rol") or "").lower()
 
-        self.lista_usuarios = ft.Column(
-            scroll=ft.ScrollMode.AUTO,
-            expand=True,
-            spacing=10,
+        self.nombre_input = ft.TextField(
+            label="Nombre completo",
+            border_radius=16,
+            width=320,
+        )
+        self.email_input = ft.TextField(
+            label="Correo electrónico",
+            border_radius=16,
+            width=320,
+        )
+        self.password_input = ft.TextField(
+            label="Contraseña",
+            password=True,
+            can_reveal_password=True,
+            border_radius=16,
+            width=320,
         )
 
-        self.nombre_input = ft.TextField(label="Nombre", width=250)
-        self.email_input = ft.TextField(label="Email", width=250)
-        self.pass_input = ft.TextField(label="Contraseña", width=250, password=True)
-        self.rol_dropdown = ft.Dropdown(
-            width=250,
-            label="Rol",
-            options=[
-                ft.dropdown.Option("cliente"),
-                ft.dropdown.Option("empleado"),
-                ft.dropdown.Option("administrador"),
-                ft.dropdown.Option("superusuario"),
-            ],
-        )
-
-        self.construir_ui()
-
-    def did_mount(self):
-        self.cargar_usuarios()
-
-    def construir_ui(self):
-        titulo = ft.Text(
-            "Gestión de Usuarios",
-            size=30,
-            weight=ft.FontWeight.BOLD,
-            color=ft.Colors.CYAN_200,
-        )
-
-        subtitulo = ft.Text(
-            "Añadir, eliminar o visualizar usuarios registrados",
-            size=16,
-            color=ft.Colors.WHITE70,
-        )
-
-        formulario = ft.Container(
-            padding=20,
-            border_radius=15,
-            bgcolor=ft.Colors.with_opacity(0.15, ft.Colors.BLUE_GREY_800),
-            border=ft.border.all(1, ft.Colors.CYAN_300),
-            content=ft.Column(
-                [
-                    ft.Text("Crear nuevo usuario", size=20, color=ft.Colors.CYAN_100),
-                    self.nombre_input,
-                    self.email_input,
-                    self.pass_input,
-                    self.rol_dropdown,
-                    ft.ElevatedButton(
-                        "Crear Usuario",
-                        icon=ft.Icons.ADD,
-                        bgcolor=ft.Colors.GREEN_600,
-                        on_click=self.crear_usuario,
-                    ),
-                ],
-                spacing=10,
-            ),
-        )
-
-        listado = ft.Container(
-            height=450,
-            width=430,
-            padding=15,
-            border_radius=15,
-            bgcolor=ft.Colors.with_opacity(0.15, ft.Colors.BLUE_GREY_900),
-            border=ft.border.all(1, ft.Colors.CYAN_300),
-            content=ft.Column(
-                [
-                    ft.Text("Usuarios Registrados", size=20, color=ft.Colors.CYAN_100),
-                    ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
-                    self.lista_usuarios,
-                ],
-                expand=True,
-                spacing=10,
-            ),
-        )
-
-        boton_volver = ft.TextButton(
-            "Volver al Panel",
-            icon=ft.Icons.ARROW_BACK,
-            on_click=lambda e: self.go("/panel_admin"),
-        )
-
-        self.controls = [
-            ft.Column(
-                controls=[
-                    titulo,
-                    subtitulo,
-                    ft.Divider(),
-                    ft.Row(
-                        [formulario, listado],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        vertical_alignment=ft.CrossAxisAlignment.START,
-                        spacing=40,
-                    ),
-                    ft.Divider(),
-                    boton_volver,
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=25,
-                expand=True,
-            )
+        opciones_rol = [
+            ft.dropdown.Option("cliente", "Cliente"),
+            ft.dropdown.Option("empleado", "Empleado"),
         ]
+        if self.rol_actual == "superusuario":
+            opciones_rol.append(ft.dropdown.Option("administrador", "Administrador"))
 
-    def cargar_usuarios(self):
-        self.lista_usuarios.controls.clear()
+        self.rol_dropdown = ft.Dropdown(
+            label="Rol del nuevo usuario",
+            value="cliente",
+            options=opciones_rol,
+            border_radius=16,
+            width=240,
+        )
 
-        usuarios = self.uc.obtener_usuarios()
-        for u in usuarios:
-            self.lista_usuarios.controls.append(self._tarjeta_usuario(u))
+        self.busqueda_input = ft.TextField(
+            hint_text="Buscar por nombre o email",
+            prefix_icon=ft.Icons.SEARCH_ROUNDED,
+            border_radius=18,
+            border_color=ft.Colors.with_opacity(0.20, ft.Colors.CYAN_200),
+            focused_border_color="#67E8F9",
+            bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+            color=ft.Colors.WHITE,
+            width=420,
+            on_change=self.refrescar_lista,
+        )
 
-        self.update()
+        self.users_column = ft.Column(spacing=14)
 
-    def _tarjeta_usuario(self, usuario):
+        self.controls = [self._build_ui()]
+        self.refrescar_lista()
+
+    def _mostrar_mensaje(self, texto: str, ok: bool = True):
+        self.page.snack_bar = ft.SnackBar(
+            ft.Text(texto),
+            bgcolor=ft.Colors.GREEN_600 if ok else ft.Colors.RED_600,
+        )
+        self.page.snack_bar.open = True
+        self.page.update()
+
+    def _crear_usuario(self, e):
+        nombre = (self.nombre_input.value or "").strip()
+        email = (self.email_input.value or "").strip()
+        password = (self.password_input.value or "").strip()
+        rol = (self.rol_dropdown.value or "cliente").strip().lower()
+
+        ok, msg = self.auth.register(
+            nombre=nombre,
+            email=email,
+            password=password,
+            rol=rol,
+            actor_rol=self.rol_actual,
+        )
+
+        self._mostrar_mensaje(msg, ok)
+
+        if ok:
+            self.nombre_input.value = ""
+            self.email_input.value = ""
+            self.password_input.value = ""
+            self.rol_dropdown.value = "cliente"
+            self.refrescar_lista()
+
+        self.page.update()
+
+    def _dar_baja_usuario(self, email: str):
+        ok, msg = self.manager.eliminar(email)
+        self._mostrar_mensaje(msg, ok)
+        if ok:
+            self.refrescar_lista()
+
+    def _tarjeta_usuario(self, user: dict):
+        rol = (user.get("rol") or "").lower()
+        activo = bool(user.get("is_active", 0))
+
+        if rol == "superusuario":
+            badge_color = "#F59E0B"
+        elif rol == "administrador":
+            badge_color = "#67E8F9"
+        elif rol == "empleado":
+            badge_color = "#A78BFA"
+        else:
+            badge_color = "#34D399"
+
+        puede_dar_baja = (
+            activo
+            and user.get("email") != self.usuario_actual.get("email")
+            and rol != "superusuario"
+        )
+
         return ft.Container(
-            padding=10,
-            border_radius=10,
-            bgcolor=ft.Colors.with_opacity(0.2, ft.Colors.BLUE_GREY_700),
-            border=ft.border.all(1, ft.Colors.CYAN_300),
+            width=1180,
+            padding=20,
+            border_radius=22,
+            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
             content=ft.Row(
                 [
-                    ft.Column(
+                    ft.Row(
                         [
-                            ft.Text(f"ID: {usuario['id']}", color=ft.Colors.CYAN_100, size=13),
-                            ft.Text(f"Nombre: {usuario['nombre']}", color=ft.Colors.WHITE, size=14),
-                            ft.Text(f"Email: {usuario['email']}", color=ft.Colors.WHITE70, size=13),
-                            ft.Text(f"Rol: {usuario['rol']}", color=ft.Colors.AMBER_200, size=13),
+                            ft.CircleAvatar(
+                                radius=28,
+                                foreground_image_src=user.get("profile_image"),
+                                bgcolor=ft.Colors.with_opacity(0.14, ft.Colors.CYAN_300),
+                                content=ft.Icon(ft.Icons.PERSON_ROUNDED, color="#9CEBFF")
+                                if not user.get("profile_image") else None,
+                            ),
+                            ft.Column(
+                                [
+                                    ft.Text(
+                                        user.get("nombre", "Sin nombre"),
+                                        size=18,
+                                        weight=ft.FontWeight.BOLD,
+                                        color=ft.Colors.WHITE,
+                                    ),
+                                    ft.Text(
+                                        user.get("email", ""),
+                                        size=13,
+                                        color=ft.Colors.WHITE70,
+                                    ),
+                                    ft.Text(
+                                        f"Creado: {user.get('created_at')}",
+                                        size=12,
+                                        color=ft.Colors.WHITE54,
+                                    ),
+                                ],
+                                spacing=4,
+                            ),
                         ],
-                        spacing=2,
-                        tight=True,
+                        spacing=14,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    ft.IconButton(
-                        icon=ft.Icons.DELETE,
-                        icon_color=ft.Colors.RED_400,
-                        tooltip="Eliminar usuario",
-                        on_click=lambda e, email=usuario["email"]: self.eliminar_usuario(email),
+                    ft.Row(
+                        [
+                            ft.Container(
+                                padding=ft.Padding(12, 6, 12, 6),
+                                border_radius=999,
+                                bgcolor=ft.Colors.with_opacity(0.14, ft.Colors.WHITE),
+                                content=ft.Text(
+                                    "Activo" if activo else "Inactivo",
+                                    size=12,
+                                    color=ft.Colors.WHITE,
+                                ),
+                            ),
+                            ft.Container(
+                                padding=ft.Padding(12, 6, 12, 6),
+                                border_radius=999,
+                                bgcolor=ft.Colors.with_opacity(0.18, badge_color),
+                                content=ft.Text(
+                                    rol.capitalize(),
+                                    size=12,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.WHITE,
+                                ),
+                            ),
+                            ft.OutlinedButton(
+                                "Dar de baja",
+                                icon=ft.Icons.PERSON_REMOVE_ROUNDED,
+                                disabled=not puede_dar_baja,
+                                style=ft.ButtonStyle(
+                                    color=ft.Colors.RED_300,
+                                    side=ft.BorderSide(1, ft.Colors.with_opacity(0.25, ft.Colors.RED_300)),
+                                    shape=ft.RoundedRectangleBorder(radius=14),
+                                ),
+                                on_click=lambda e, correo=user.get("email"): self._dar_baja_usuario(correo),
+                            ),
+                        ],
+                        spacing=10,
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                vertical_alignment=ft.CrossAxisAlignment.START,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
             ),
         )
 
-    def crear_usuario(self, e):
-        nombre = self.nombre_input.value
-        email = self.email_input.value
-        password = self.pass_input.value
-        rol = self.rol_dropdown.value
+    def refrescar_lista(self, e=None):
+        texto = (self.busqueda_input.value or "").strip().lower()
+        usuarios = self.manager.listar()
 
-        if not nombre or not email or not password or not rol:
-            self.mensaje("Todos los campos son obligatorios", ft.Colors.RED_600)
-            return
+        if texto:
+            usuarios = [
+                u for u in usuarios
+                if texto in (u.get("nombre", "").lower()) or texto in (u.get("email", "").lower())
+            ]
 
-        ok, msg = self.uc.crear_usuario(nombre, email, password, rol)
-        if not ok:
-            self.mensaje(msg, ft.Colors.RED_600)
-            return
+        self.users_column.controls.clear()
 
-        self.mensaje("Usuario creado correctamente", ft.Colors.GREEN_700)
+        if not usuarios:
+            self.users_column.controls.append(
+                ft.Container(
+                    width=1180,
+                    padding=24,
+                    border_radius=20,
+                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                    content=ft.Text(
+                        "No se han encontrado usuarios.",
+                        size=16,
+                        color=ft.Colors.WHITE70,
+                    ),
+                )
+            )
+        else:
+            for user in usuarios:
+                self.users_column.controls.append(self._tarjeta_usuario(user))
 
-        self.nombre_input.value = ""
-        self.email_input.value = ""
-        self.pass_input.value = ""
-        self.rol_dropdown.value = None
+        self.page.update()
 
-        self.cargar_usuarios()
-
-    def eliminar_usuario(self, email):
-        password_field = ft.TextField(
-            label="Confirma contraseña del administrador",
-            password=True,
-            width=300,
+    def _build_ui(self):
+        permiso_texto = (
+            "Como administrador puedes crear clientes y empleados."
+            if self.rol_actual == "administrador"
+            else "Como superusuario puedes crear clientes, empleados y administradores."
         )
 
-        def on_confirm(e):
-            admin = get_current_user()
-            if not admin or admin.get("rol") not in ["administrador", "superusuario"]:
-                self.mensaje(
-                    "Solo administradores o superusuarios pueden eliminar usuarios.",
-                    ft.Colors.RED_700,
-                )
-                dlg.open = False
-                self.page.update()
-                return
-
-            if admin.get("email") == email:
-                self.mensaje(
-                    "No puedes eliminar la cuenta con la que estás autenticado.",
-                    ft.Colors.RED_700,
-                )
-                dlg.open = False
-                self.page.update()
-                return
-
-            pwd = password_field.value or ""
-            usuario_aut = self.auth.login(admin.get("email"), pwd)
-            if not usuario_aut:
-                self.mensaje("Contraseña incorrecta.", ft.Colors.RED_600)
-                return
-
-            actor_email = admin.get("email")
-            ok, msg = self.uc.eliminar(email, actor=actor_email)
-
-            still_exists = self.uc.buscar_por_email(email)
-            if ok and still_exists:
-                ok = False
-                msg = "La eliminación no persistió; inténtalo de nuevo."
-
-            color = ft.Colors.GREEN_700 if ok else ft.Colors.RED_700
-            self.mensaje(msg, color)
-
-            self.cargar_usuarios()
-            self.page.update()
-
-            dlg.open = False
-            self.page.update()
-
-        dlg = ft.AlertDialog(
-            title=ft.Text("Confirmar eliminación"),
+        return ft.Container(
+            expand=True,
+            padding=28,
+            gradient=ft.LinearGradient(
+                begin=ft.Alignment(-1, -1),
+                end=ft.Alignment(1, 1),
+                colors=["#050A12", "#09172A", "#0B2342", "#0E2F55"],
+            ),
             content=ft.Column(
                 [
-                    ft.Text(
-                        f"Introduce la contraseña del administrador para eliminar al usuario {email}."
+                    ft.Container(
+                        width=1180,
+                        padding=24,
+                        border_radius=28,
+                        bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+                        content=ft.Row(
+                            [
+                                ft.Column(
+                                    [
+                                        ft.Text(
+                                            "Gestión de usuarios",
+                                            size=32,
+                                            weight=ft.FontWeight.BOLD,
+                                            color=ft.Colors.WHITE,
+                                        ),
+                                        ft.Text(
+                                            "Administra las cuentas del sistema desde una vista moderna y centralizada.",
+                                            size=15,
+                                            color=ft.Colors.WHITE70,
+                                        ),
+                                        ft.Text(
+                                            permiso_texto,
+                                            size=13,
+                                            color="#9CEBFF",
+                                        ),
+                                    ],
+                                    spacing=6,
+                                ),
+                                ft.OutlinedButton(
+                                    "Volver",
+                                    icon=ft.Icons.ARROW_BACK_ROUNDED,
+                                    style=ft.ButtonStyle(
+                                        color=ft.Colors.WHITE,
+                                        side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
+                                        shape=ft.RoundedRectangleBorder(radius=16),
+                                    ),
+                                    on_click=lambda e: self.go("/panel_super" if self.rol_actual == "superusuario" else "/panel_admin"),
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                        ),
                     ),
-                    password_field,
+                    ft.Container(height=18),
+                    ft.Container(
+                        width=1180,
+                        padding=24,
+                        border_radius=28,
+                        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                        content=ft.Column(
+                            [
+                                ft.Text(
+                                    "Crear nuevo usuario",
+                                    size=22,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.WHITE,
+                                ),
+                                ft.Text(
+                                    "Completa los datos y selecciona el rol permitido según tu nivel de acceso.",
+                                    size=14,
+                                    color=ft.Colors.WHITE70,
+                                ),
+                                ft.Row(
+                                    [
+                                        self.nombre_input,
+                                        self.email_input,
+                                        self.password_input,
+                                    ],
+                                    wrap=True,
+                                    spacing=14,
+                                ),
+                                ft.Row(
+                                    [
+                                        self.rol_dropdown,
+                                        ft.ElevatedButton(
+                                            "Crear usuario",
+                                            icon=ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
+                                            bgcolor="#64D7FF",
+                                            color=ft.Colors.BLACK,
+                                            style=ft.ButtonStyle(
+                                                shape=ft.RoundedRectangleBorder(radius=16),
+                                            ),
+                                            on_click=self._crear_usuario,
+                                        ),
+                                    ],
+                                    spacing=14,
+                                    wrap=True,
+                                ),
+                            ],
+                            spacing=14,
+                        ),
+                    ),
+                    ft.Container(height=18),
+                    ft.Container(
+                        width=1180,
+                        padding=20,
+                        border_radius=24,
+                        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                        content=ft.Column(
+                            [
+                                ft.Row(
+                                    [
+                                        ft.Text(
+                                            "Usuarios registrados",
+                                            size=22,
+                                            weight=ft.FontWeight.BOLD,
+                                            color=ft.Colors.WHITE,
+                                        ),
+                                        self.busqueda_input,
+                                    ],
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                ),
+                                self.users_column,
+                            ],
+                            spacing=16,
+                        ),
+                    ),
                 ],
-                tight=True,
+                spacing=0,
+                scroll=ft.ScrollMode.AUTO,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             ),
-            actions=[
-                ft.TextButton(
-                    "Cancelar",
-                    on_click=lambda e: self._cerrar_dialogo(dlg),
-                ),
-                ft.ElevatedButton(
-                    "Confirmar",
-                    bgcolor=ft.Colors.RED_700,
-                    on_click=on_confirm,
-                ),
-            ],
         )
-
-        self.page.dialog = dlg
-        dlg.open = True
-        self.page.update()
-
-    def _cerrar_dialogo(self, dlg):
-        dlg.open = False
-        self.page.update()
-
-    def mensaje(self, texto, color):
-        self.page.snack_bar = ft.SnackBar(ft.Text(texto), bgcolor=color)
-        self.page.snack_bar.open = True
-        self.page.update()

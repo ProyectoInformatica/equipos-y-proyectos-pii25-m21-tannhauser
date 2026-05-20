@@ -489,3 +489,35 @@ class SensorDataManager:
             })
 
         return resultado
+    def adaptar_bbdd_nuevo_sensor():
+        conn = get_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS registro_sensores_nuevo (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    sensor_nombre VARCHAR(100) NOT NULL,
+                    valor_entero INT NOT NULL,
+                    valor_char VARCHAR(1) NOT NULL,
+                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            cursor.close()
+            conn.close()
+def db_insert_nuevo_sensor(nombre_sensor, dato_entero, dato_char):
+    """Función interna que hace el INSERT en SQL."""
+    conn = get_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            consulta = """
+                INSERT INTO registro_sensores_nuevo (sensor_nombre, valor_entero, valor_char) 
+                VALUES (%s, %s, %s)
+            """
+            cursor.execute(consulta, (nombre_sensor, int(dato_entero), str(dato_char)))
+            conn.commit()
+        except Exception as e:
+            print(f"Error en inserción directa: {e}")
+        finally:
+            conn.close()

@@ -13,8 +13,23 @@ class AuthController:
             self.fm.registrar_actividad(user["email"], "LOGIN")
         return user
 
-    def register(self, nombre: str, email: str, password: str):
-        ok, msg = self.manager.registrar(nombre, email, password)
+    def register(
+        self,
+        nombre: str,
+        email: str,
+        password: str,
+        rol: str = "cliente",
+        actor_rol: str = "cliente",
+        profile_image: str = None,
+    ):
+        ok, msg = self.manager.registrar(
+            nombre=nombre,
+            email=email,
+            password=password,
+            rol=rol,
+            actor_rol=actor_rol,
+            profile_image=profile_image,
+        )
         if ok:
             self.fm.registrar_actividad(email, "REGISTER")
         return ok, msg

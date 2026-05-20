@@ -1,374 +1,431 @@
-"""
-Vista para mostrar estadísticas de sensores.
-Permite visualizar datos, gráficos y alertas de los sensores del sistema.
-"""
-
+import os
+import json
+import statistics
+from datetime import datetime, timedelta
 import flet as ft
-from controllers.estadisticas_controller import EstadisticasController
-from datetime import datetime
-import csv
-from pathlib import Path
+from utils.navigation import ruta_dashboard_por_rol
 
 
-def EstadisticasSensoresView(page: ft.Page, go):
-    """Vista para mostrar estadísticas de sensores"""
-    
-    stats_controller = EstadisticasController()
-    
-    # (Se obtendrá dinámicamente dentro de las funciones de actualización)
-    
-    # Encabezado
-    titulo = ft.Text(
-        "📊 Estadísticas de Sensores",
-        size=28,
-        weight=ft.FontWeight.BOLD,
-        color=ft.Colors.CYAN_300,
-    )
-    
-    subtitulo = ft.Text(
-        "Monitoreo en tiempo real de sensores del supermercado",
-        size=14,
-        color=ft.Colors.GREY_300,
-    )
-    
-    # Información de conexión (para debugging)
-    info_conexion = ft.Column(spacing=5)
-    
-    # Contenedor para las estadísticas
-    contenedor_stats = ft.Column(spacing=15, scroll=ft.ScrollMode.AUTO)
-    
-    def actualizar_info_conexion():
-        """Actualiza la información de conexión"""
-        info_conexion.controls.clear()
+class EstadisticasSensoresView(ft.View):
+    def __init__(self, page: ft.Page, go):
+        super().__init__(route="/estadisticas_sensores", padding=0, spacing=0)
+        self.page = page
+        self.go = go
+        self.base_path = os.path.join("data", "sensors")
 
-        # Encabezado de información
-        info_conexion.controls.append(
-            ft.Text(
-                "ℹ️ Estado de Conexión de Archivos",
-                size=12,
-                color=ft.Colors.GREY_500,
-                weight=ft.FontWeight.BOLD
-            )
-        )
+        self.total_sensores_text = ft.Text("0", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        self.total_registros_text = ft.Text("0", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        self.consumo_total_text = ft.Text("0.0000 kWh", size=28, weight=ft.FontWeight.BOLD, color="#9CEBFF")
+        self.ultima_actualizacion_text = ft.Text("Sin dato", size=22, weight=ft.FontWeight.BOLD, color="#9CEBFF")
 
-        # Obtener información fresca del controlador
-        try:
-            conexion_info = stats_controller.verificar_conexion_archivos()
-            rutas_info = stats_controller.obtener_ruta_archivos_sensores()
-        except Exception as e:
-            conexion_info = {}
-            rutas_info = {"directorio_base": "data/sensores"}
+        self.estado_archivos_column = ft.Column(spacing=8)
+        self.cards_column = ft.Column(spacing=18)
+        self.error_text = ft.Text("", color=ft.Colors.RED_300, size=14)
 
-        for sensor, info in conexion_info.items():
-            if info.get("conectado"):
-                estado_text = ft.Text(
-                    f"✓ {sensor}: {info.get('total_registros', 0)} registros",
-                    size=10,
-                    color=ft.Colors.GREEN_300
-                )
-            else:
-                estado_text = ft.Text(
-                    f"✗ {sensor}: Error",
-                    size=10,
-                    color=ft.Colors.RED_300
-                )
-            info_conexion.controls.append(estado_text)
+        self.controls = [self._build_ui()]
 
-        info_conexion.controls.append(
-            ft.Text(
-                f"Directorio: {rutas_info.get('directorio_base', 'data/sensores')}",
-                size=9,
-                color=ft.Colors.GREY_600,
-                italic=True
-            )
-        )
-    
-    def actualizar_estadisticas():
-        """Actualiza el contenido de estadísticas"""
-        contenedor_stats.controls.clear()
-        
-        try:
-            todas_stats = stats_controller.obtener_todas_estadisticas()
-            consumo_24h = stats_controller.obtener_consumo_ultimas_24h()
-            alertas = stats_controller.obtener_alertas()
-            # cargar medias y kWh desde CSVs generados en tools/
-            media_map = {}
-            kwh_map = {}
-            try:
-                tools_dir = Path(__file__).resolve().parents[2] / 'tools'
-                medias_file = tools_dir / 'consumo_medias.csv'
-                kwh_file = tools_dir / 'consumo_kwh.csv'
-                if medias_file.exists():
-                    with medias_file.open('r', encoding='utf-8') as fh:
-                        reader = csv.DictReader(fh)
-                        for r in reader:
-                            try:
-                                media_map[r['sensor']] = float(r.get('mean_w', 0))
-                            except Exception:
-                                pass
-                if kwh_file.exists():
-                    with kwh_file.open('r', encoding='utf-8') as fh:
-                        reader = csv.DictReader(fh)
-                        for r in reader:
-                            try:
-                                kwh_map[r['sensor']] = float(r.get('total_kwh', 0))
-                            except Exception:
-                                pass
-            except Exception:
-                media_map = {}
-                kwh_map = {}
-            
-            # Mostrar alertas si las hay
-            if alertas:
-                contenedor_alertas = ft.Container(
-                    bgcolor=ft.Colors.RED_900,
-                    border_radius=10,
-                    padding=15,
-                    border=ft.border.all(2, ft.Colors.RED_500),
-                )
-                alertas_text = [ft.Text("⚠️ ALERTAS DETECTADAS:", weight=ft.FontWeight.BOLD, color=ft.Colors.RED_200)]
-                for alerta in alertas:
-                    alertas_text.append(
-                        ft.Text(
-                            f"• {alerta['sensor']}: {alerta['mensaje']}",
-                            color=ft.Colors.ORANGE_300,
-                            size=12
-                        )
-                    )
-                contenedor_alertas.content = ft.Column(alertas_text, spacing=5)
-                contenedor_stats.controls.append(contenedor_alertas)
-                contenedor_stats.controls.append(ft.Container(height=10))
-            
-            # Mostrar estadísticas por sensor
-            for nombre_sensor, stats in todas_stats.items():
-                if stats.get("estado") == "sin_datos":
-                    # Sensor sin datos
-                    tarjeta = ft.Container(
-                        bgcolor=ft.Colors.GREY_900,
-                        border_radius=10,
-                        padding=15,
-                        border=ft.border.all(1, ft.Colors.GREY_700),
-                        content=ft.Column([
-                            ft.Text(
-                                nombre_sensor.replace("sensor_", "").upper(),
-                                weight=ft.FontWeight.BOLD,
-                                color=ft.Colors.GREY_500,
-                                size=14
-                            ),
-                            ft.Text("Sin datos disponibles", color=ft.Colors.GREY_400, size=12),
-                        ], spacing=8)
-                    )
-                else:
-                    # Sensor con datos
-                    contenido_tarjeta = []
-                    
-                    # Nombre del sensor
-                    contenido_tarjeta.append(
-                        ft.Text(
-                            f"🔹 {nombre_sensor.replace('sensor_', '').upper()}",
-                            weight=ft.FontWeight.BOLD,
-                            color=ft.Colors.CYAN_300,
-                            size=14
-                        )
-                    )
-                    
-                    # Total de lecturas
-                    contenido_tarjeta.append(
-                        ft.Text(
-                            f"Total de lecturas: {stats.get('total_lecturas', 0)}",
-                            color=ft.Colors.GREY_300,
-                            size=11
-                        )
-                    )
-                    
-                    # Estadísticas para sensores numéricos
-                    if stats.get("tipo_dato") == "numerico" or "promedio" in stats:
-                        contenido_tarjeta.append(ft.Divider(height=1, color=ft.Colors.GREY_700))
-                        
-                        stats_row1 = ft.Row([
-                            ft.Column([
-                                ft.Text("Mínimo", size=10, color=ft.Colors.GREY_400),
-                                ft.Text(f"{stats.get('minimo', 'N/A')}", size=12, color=ft.Colors.BLUE_300, weight=ft.FontWeight.BOLD),
-                            ], tight=True, spacing=2),
-                            ft.Column([
-                                ft.Text("Máximo", size=10, color=ft.Colors.GREY_400),
-                                ft.Text(f"{stats.get('maximo', 'N/A')}", size=12, color=ft.Colors.RED_300, weight=ft.FontWeight.BOLD),
-                            ], tight=True, spacing=2),
-                            ft.Column([
-                                ft.Text("Promedio", size=10, color=ft.Colors.GREY_400),
-                                ft.Text(f"{stats.get('promedio', 'N/A')}", size=12, color=ft.Colors.GREEN_300, weight=ft.FontWeight.BOLD),
-                            ], tight=True, spacing=2),
-                            ft.Column([
-                                ft.Text("Mediana", size=10, color=ft.Colors.GREY_400),
-                                ft.Text(f"{stats.get('mediana', 'N/A')}", size=12, color=ft.Colors.YELLOW_300, weight=ft.FontWeight.BOLD),
-                            ], tight=True, spacing=2),
-                        ], spacing=15, expand=True)
-                        
-                        contenido_tarjeta.append(stats_row1)
-                        
-                        # Desviación estándar y rango
-                        if stats.get('desviacion_estandar') is not None:
-                            stats_row2 = ft.Row([
-                                ft.Column([
-                                    ft.Text("Desv. Estándar", size=10, color=ft.Colors.GREY_400),
-                                    ft.Text(f"{stats.get('desviacion_estandar', 'N/A')}", size=12, color=ft.Colors.PURPLE_300, weight=ft.FontWeight.BOLD),
-                                ], tight=True, spacing=2),
-                                ft.Column([
-                                    ft.Text("Rango", size=10, color=ft.Colors.GREY_400),
-                                    ft.Text(f"{stats.get('rango', 'N/A')}", size=12, color=ft.Colors.INDIGO_300, weight=ft.FontWeight.BOLD),
-                                ], tight=True, spacing=2),
-                            ], spacing=15)
-                            contenido_tarjeta.append(stats_row2)
-                    
-                    # Estadísticas para sensores de texto
-                    elif stats.get("tipo_dato") == "texto":
-                        contenido_tarjeta.append(ft.Divider(height=1, color=ft.Colors.GREY_700))
-                        valores_unicos = stats.get('valores', [])
-                        contenido_tarjeta.append(
-                            ft.Text(f"Valores únicos: {', '.join(map(str, valores_unicos))}", size=11, color=ft.Colors.GREY_300)
-                        )
-                    
-                    # Última lectura
-                    ultima_lectura = stats.get("ultima_lectura", {})
-                    if ultima_lectura:
-                        contenido_tarjeta.append(ft.Divider(height=1, color=ft.Colors.GREY_700))
-                        timestamp = ultima_lectura.get("timestamp", "N/A")
-                        if isinstance(timestamp, str):
-                            try:
-                                dt = datetime.fromisoformat(timestamp)
-                                timestamp = dt.strftime("%d/%m/%Y %H:%M:%S")
-                            except:
-                                pass
-                        
-                        contenido_tarjeta.append(
-                            ft.Text(
-                                f"Última lectura: {ultima_lectura.get('valor', 'N/A')} ({timestamp})",
-                                size=10,
-                                color=ft.Colors.LIME_300,
-                                italic=True
-                            )
-                        )
+    def did_mount(self):
+        self.refrescar_estadisticas()
 
-                    # Media de consumo (W) desde CSV
-                    media_csv = media_map.get(nombre_sensor)
-                    if media_csv is not None:
-                        contenido_tarjeta.append(ft.Divider(height=1, color=ft.Colors.GREY_700))
-                        contenido_tarjeta.append(
-                            ft.Text(
-                                f"Media consumo: {round(media_csv,4)} W",
-                                size=11,
-                                color=ft.Colors.CYAN_100
-                            )
-                        )
-
-                    # Consumo total (kWh) desde CSV
-                    total_kwh = kwh_map.get(nombre_sensor)
-                    if total_kwh is not None:
-                        contenido_tarjeta.append(
-                            ft.Text(
-                                f"Consumo total: {round(total_kwh,6)} kWh",
-                                size=11,
-                                color=ft.Colors.AMBER_300
-                            )
-                        )
-
-                    # Consumo estimado últimas 24h (Wh)
-                    consumo_sensor = consumo_24h.get(nombre_sensor)
-                    if consumo_sensor is not None:
-                        contenido_tarjeta.append(ft.Divider(height=1, color=ft.Colors.GREY_700))
-                        contenido_tarjeta.append(
-                            ft.Text(
-                                f"Consumo últimas 24h: {consumo_sensor} Wh",
-                                size=11,
-                                color=ft.Colors.AMBER_300
-                            )
-                        )
-                    
-                    tarjeta = ft.Container(
-                        bgcolor=ft.Colors.with_opacity(0.3, ft.Colors.CYAN_900),
-                        border_radius=10,
-                        padding=15,
-                        border=ft.border.all(1, ft.Colors.CYAN_500),
-                        content=ft.Column(contenido_tarjeta, spacing=8)
-                    )
-                
-                contenedor_stats.controls.append(tarjeta)
-        
-        except Exception as e:
-            contenedor_stats.controls.append(
-                ft.Container(
-                    bgcolor=ft.Colors.RED_900,
-                    border_radius=10,
-                    padding=15,
-                    content=ft.Text(f"Error al cargar estadísticas: {str(e)}", color=ft.Colors.RED_200)
-                )
-            )
-        
-        page.update()
-    
-    # Botón de actualizar
-    btn_actualizar = ft.ElevatedButton(
-        "🔄 Actualizar Estadísticas",
-        icon=ft.Icons.REFRESH,
-        style=ft.ButtonStyle(
-            bgcolor={ft.ControlState.DEFAULT: ft.Colors.CYAN_400},
-            color={ft.ControlState.DEFAULT: ft.Colors.BLACK},
-            shape=ft.RoundedRectangleBorder(radius=20),
-        ),
-        on_click=lambda e: (actualizar_info_conexion(), actualizar_estadisticas()),
-        width=250,
-    )
-    
-    # Botón de volver
-    btn_volver = ft.ElevatedButton(
-        "← Volver",
-        icon=ft.Icons.ARROW_BACK,
-        style=ft.ButtonStyle(
-            bgcolor={ft.ControlState.DEFAULT: ft.Colors.RED_400},
-            color={ft.ControlState.DEFAULT: ft.Colors.WHITE},
-            shape=ft.RoundedRectangleBorder(radius=20),
-        ),
-        on_click=lambda e: go("/panel_super"),
-        width=250,
-    )
-    
-    # Encabezado con botones
-    header = ft.Column([
-        titulo,
-        subtitulo,
-        ft.Container(height=15),
-        ft.Row([btn_actualizar, btn_volver], spacing=10),
-        ft.Divider(height=20, color=ft.Colors.GREY_700),
-    ], spacing=5)
-    
-    # Contenido principal
-    contenido = ft.Container(
-        expand=True,
-        padding=30,
-        gradient=ft.LinearGradient(
-            begin=ft.Alignment(0, -1),
-            end=ft.Alignment(0, 1),
-            colors=[ft.Colors.GREY_900, ft.Colors.BLACK],
-        ),
-        content=ft.Column([
-            header,
-            ft.Container(
-                bgcolor=ft.Colors.with_opacity(0.2, ft.Colors.GREY_800),
-                border_radius=8,
-                padding=10,
-                content=info_conexion
+    def _build_ui(self):
+        return ft.Container(
+            expand=True,
+            padding=28,
+            gradient=ft.LinearGradient(
+                begin=ft.Alignment(-1, -1),
+                end=ft.Alignment(1, 1),
+                colors=["#050A12", "#09172A", "#0B2342", "#0E2F55"],
             ),
-            ft.Container(expand=True, content=contenedor_stats),
-        ], expand=True, spacing=10),
-    )
-    
-    # Cargar estadísticas e información de conexión al abrir la vista
-    actualizar_info_conexion()
-    actualizar_estadisticas()
-    
-    return ft.View(
-        route="/estadisticas_sensores",
-        controls=[contenido],
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        vertical_alignment=ft.MainAxisAlignment.START,
-    )
+            content=ft.Column(
+                [
+                    ft.Container(
+                        width=1180,
+                        padding=24,
+                        border_radius=28,
+                        bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+                        content=ft.Row(
+                            [
+                                ft.Column(
+                                    [
+                                        ft.Text(
+                                            "Estadísticas de sensores",
+                                            size=34,
+                                            weight=ft.FontWeight.BOLD,
+                                            color=ft.Colors.WHITE,
+                                        ),
+                                        ft.Text(
+                                            "Monitoreo y análisis de datos reales recogidos por los sensores del supermercado.",
+                                            size=15,
+                                            color=ft.Colors.WHITE70,
+                                        ),
+                                    ],
+                                    spacing=6,
+                                ),
+                                ft.Row(
+                                    [
+                                        ft.ElevatedButton(
+                                            "Actualizar estadísticas",
+                                            icon=ft.Icons.REFRESH_ROUNDED,
+                                            bgcolor="#64D7FF",
+                                            color=ft.Colors.BLACK,
+                                            style=ft.ButtonStyle(
+                                                shape=ft.RoundedRectangleBorder(radius=16),
+                                            ),
+                                            on_click=lambda e: self.refrescar_estadisticas(),
+                                        ),
+                                        ft.OutlinedButton(
+                                            "Volver",
+                                            icon=ft.Icons.ARROW_BACK_ROUNDED,
+                                            style=ft.ButtonStyle(
+                                                color=ft.Colors.WHITE,
+                                                side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
+                                                shape=ft.RoundedRectangleBorder(radius=16),
+                                            ),
+                                            on_click=lambda e: self.go(ruta_dashboard_por_rol()),
+                                        ),
+                                    ],
+                                    spacing=12,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                        ),
+                    ),
+                    ft.Container(height=18),
+                    self.error_text,
+                    ft.Row(
+                        [
+                            self._metric_card("Sensores detectados", self.total_sensores_text),
+                            self._metric_card("Registros analizados", self.total_registros_text),
+                            self._metric_card("Consumo total", self.consumo_total_text),
+                            self._metric_card("Última actualización", self.ultima_actualizacion_text),
+                        ],
+                        spacing=16,
+                        wrap=True,
+                    ),
+                    ft.Container(height=18),
+                    ft.Container(
+                        width=1180,
+                        padding=20,
+                        border_radius=24,
+                        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                        content=ft.Column(
+                            [
+                                ft.Text(
+                                    "Estado de archivos de sensores",
+                                    size=20,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.WHITE,
+                                ),
+                                self.estado_archivos_column,
+                            ],
+                            spacing=12,
+                        ),
+                    ),
+                    ft.Container(height=18),
+                    self.cards_column,
+                ],
+                spacing=0,
+                scroll=ft.ScrollMode.AUTO,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+        )
+
+    def _metric_card(self, titulo, valor_widget):
+        return ft.Container(
+            width=280,
+            padding=22,
+            border_radius=22,
+            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+            content=ft.Column(
+                [
+                    ft.Text(titulo, size=14, color=ft.Colors.WHITE60),
+                    valor_widget,
+                ],
+                spacing=10,
+            ),
+        )
+
+    def _read_sensor_file(self, path):
+        if not os.path.exists(path):
+            return []
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, list) else []
+
+    def _to_float(self, value):
+        try:
+            return float(value)
+        except Exception:
+            return None
+
+    def _parse_datetime(self, value):
+        if not value:
+            return None
+        formatos = [
+            "%Y-%m-%d %H:%M:%S",
+            "%d/%m/%Y %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S",
+        ]
+        for fmt in formatos:
+            try:
+                return datetime.strptime(value, fmt)
+            except Exception:
+                continue
+        return None
+
+    def _extraer_valores(self, data):
+        valores = []
+        timestamps = []
+        consumos = []
+
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+
+            value = (
+                item.get("value")
+                or item.get("valor")
+                or item.get("temperatura")
+                or item.get("humedad")
+                or item.get("distancia")
+                or item.get("calidad_aire")
+                or item.get("intensidad")
+            )
+
+            consumo = (
+                item.get("consumption_w")
+                or item.get("consumo_w")
+                or item.get("power_w")
+                or item.get("potencia_w")
+            )
+
+            ts = (
+                item.get("timestamp")
+                or item.get("recorded_at")
+                or item.get("fecha")
+                or item.get("datetime")
+            )
+
+            fv = self._to_float(value)
+            if fv is not None:
+                valores.append(fv)
+
+            fc = self._to_float(consumo)
+            if fc is not None:
+                consumos.append(fc)
+
+            dt = self._parse_datetime(ts)
+            if dt:
+                timestamps.append(dt)
+
+        return valores, timestamps, consumos
+
+    def _kwh_total(self, consumos):
+        if not consumos:
+            return 0.0
+        media_w = sum(consumos) / len(consumos)
+        return media_w / 1000.0
+
+    def _wh_ultimas_24h(self, consumos, timestamps):
+        if not consumos or not timestamps or len(consumos) != len(timestamps):
+            return 0.0
+
+        ahora = max(timestamps)
+        limite = ahora - timedelta(hours=24)
+        valores = [c for c, t in zip(consumos, timestamps) if t >= limite]
+
+        if not valores:
+            return 0.0
+
+        media_w = sum(valores) / len(valores)
+        return media_w * 24.0
+
+    def _stat_item(self, titulo, valor):
+        return ft.Column(
+            [
+                ft.Text(titulo, size=13, color=ft.Colors.WHITE60),
+                ft.Text(valor, size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+            ],
+            spacing=4,
+        )
+
+    def _sensor_card(self, titulo, total_lecturas, minimo, maximo, promedio, mediana, desv, rango, ultima, consumo_medio_w, consumo_total_kwh, consumo_24h_wh):
+        def v(x):
+            return str(x) if x is not None else "Sin dato"
+
+        return ft.Container(
+            width=1180,
+            padding=24,
+            border_radius=26,
+            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.CYAN_200)),
+            content=ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Text(
+                                titulo,
+                                size=24,
+                                weight=ft.FontWeight.BOLD,
+                                color="#9CEBFF",
+                            ),
+                            ft.Text(
+                                f"Total de lecturas: {total_lecturas}",
+                                size=15,
+                                color=ft.Colors.WHITE70,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    ),
+                    ft.Divider(color=ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                    ft.Row(
+                        [
+                            self._stat_item("Mínimo", v(minimo)),
+                            self._stat_item("Máximo", v(maximo)),
+                            self._stat_item("Promedio", v(promedio)),
+                            self._stat_item("Mediana", v(mediana)),
+                            self._stat_item("Desv. estándar", v(desv)),
+                            self._stat_item("Rango", v(rango)),
+                        ],
+                        wrap=True,
+                        spacing=28,
+                    ),
+                    ft.Text(
+                        f"Última lectura: {ultima}" if ultima else "Última lectura: Sin dato",
+                        size=14,
+                        color="#D7F36B",
+                        italic=True,
+                    ),
+                    ft.Divider(color=ft.Colors.with_opacity(0.08, ft.Colors.WHITE)),
+                    ft.Row(
+                        [
+                            self._stat_item("Media consumo", f"{consumo_medio_w:.4f} W"),
+                            self._stat_item("Consumo total", f"{consumo_total_kwh:.6f} kWh"),
+                            self._stat_item("Consumo últimas 24h", f"{consumo_24h_wh:.2f} Wh"),
+                        ],
+                        wrap=True,
+                        spacing=28,
+                    ),
+                ],
+                spacing=10,
+            ),
+        )
+
+    def refrescar_estadisticas(self):
+        try:
+            self.error_text.value = ""
+            archivos = {
+                "TEMPERATURA": os.path.join(self.base_path, "sensor_temperatura.json"),
+                "HUMEDAD": os.path.join(self.base_path, "sensor_humedad.json"),
+                "LUZ": os.path.join(self.base_path, "sensor_luz.json"),
+                "NEVERA": os.path.join(self.base_path, "sensor_nevera.json"),
+                "PUERTA": os.path.join(self.base_path, "sensor_puerta.json"),
+            }
+
+            self.estado_archivos_column.controls.clear()
+            self.cards_column.controls.clear()
+
+            total_sensores = 0
+            total_registros = 0
+            consumo_total = 0.0
+            ultima_global = None
+
+            for nombre, ruta in archivos.items():
+                data = self._read_sensor_file(ruta)
+                total = len(data)
+
+                self.estado_archivos_column.controls.append(
+                    ft.Text(
+                        f"{'✓' if total > 0 else '•'} {nombre}: {total} registros",
+                        size=14,
+                        color=ft.Colors.GREEN_300 if total > 0 else ft.Colors.WHITE54,
+                    )
+                )
+
+                if total == 0:
+                    continue
+
+                total_sensores += 1
+                total_registros += total
+
+                valores, timestamps, consumos = self._extraer_valores(data)
+
+                if timestamps:
+                    ultima_local = max(timestamps)
+                    if ultima_global is None or ultima_local > ultima_global:
+                        ultima_global = ultima_local
+                    ultima_txt = ultima_local.strftime("%d/%m/%Y %H:%M:%S")
+                else:
+                    ultima_txt = None
+
+                if valores:
+                    minimo = round(min(valores), 2)
+                    maximo = round(max(valores), 2)
+                    promedio = round(sum(valores) / len(valores), 2)
+                    mediana = round(statistics.median(valores), 2)
+                    desv = round(statistics.pstdev(valores), 2) if len(valores) > 1 else 0.0
+                    rango = round(max(valores) - min(valores), 2)
+                else:
+                    minimo = maximo = promedio = mediana = desv = rango = None
+
+                if consumos:
+                    consumo_medio_w = sum(consumos) / len(consumos)
+                    consumo_total_kwh = self._kwh_total(consumos)
+                    consumo_24h_wh = self._wh_ultimas_24h(consumos, timestamps) if timestamps and len(consumos) == len(timestamps) else 0.0
+                else:
+                    consumo_medio_w = 0.0
+                    consumo_total_kwh = 0.0
+                    consumo_24h_wh = 0.0
+
+                consumo_total += consumo_total_kwh
+
+                self.cards_column.controls.append(
+                    self._sensor_card(
+                        titulo=nombre,
+                        total_lecturas=total,
+                        minimo=minimo,
+                        maximo=maximo,
+                        promedio=promedio,
+                        mediana=mediana,
+                        desv=desv,
+                        rango=rango,
+                        ultima=ultima_txt,
+                        consumo_medio_w=consumo_medio_w,
+                        consumo_total_kwh=consumo_total_kwh,
+                        consumo_24h_wh=consumo_24h_wh,
+                    )
+                )
+
+            self.total_sensores_text.value = str(total_sensores)
+            self.total_registros_text.value = str(total_registros)
+            self.consumo_total_text.value = f"{consumo_total:.6f} kWh"
+            self.ultima_actualizacion_text.value = (
+                ultima_global.strftime("%d/%m/%Y %H:%M:%S") if ultima_global else "Sin dato"
+            )
+
+            if not self.cards_column.controls:
+                self.cards_column.controls.append(
+                    ft.Container(
+                        width=1180,
+                        padding=24,
+                        border_radius=24,
+                        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                        content=ft.Text(
+                            "No se han encontrado datos reales de sensores para mostrar estadísticas.",
+                            size=16,
+                            color=ft.Colors.WHITE70,
+                        ),
+                    )
+                )
+
+            self.update()
+        except Exception as ex:
+            self.estado_archivos_column.controls.clear()
+            self.cards_column.controls.clear()
+            self.error_text.value = f"Error cargando estadísticas: {ex}"
+            self.update()
