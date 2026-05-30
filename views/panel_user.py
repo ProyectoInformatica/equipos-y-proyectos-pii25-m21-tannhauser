@@ -103,17 +103,18 @@ def PanelUsuarioView(page: ft.Page, go):
             qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
             buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
+            img.save(buffer)
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
         except Exception:
             return None
 
+    identificador_qr = user_id or email or nombre or "cliente_local"
     payload_qr = json.dumps({
         "type": "tannhauser_loyalty",
-        "user_id": user_id,
+        "user_id": identificador_qr,
         "name": nombre,
         "email": email,
-    })
+    }, ensure_ascii=False)
     qr_b64 = generar_qr_base64(payload_qr)
 
     def stat_card(icono, titulo, valor, subtitulo, color_icono="#9CEBFF"):
@@ -391,7 +392,7 @@ def PanelUsuarioView(page: ft.Page, go):
                             bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
                             padding=10,
                             content=ft.Image(
-                                src="assets/logo_tannhauser.png",
+                                src="logo_tannhauser.png",
                                 fit=ft.ImageFit.CONTAIN,
                             ),
                         ),
@@ -430,29 +431,6 @@ def PanelUsuarioView(page: ft.Page, go):
                                 shape=ft.RoundedRectangleBorder(radius=16),
                             ),
                             on_click=lambda e: go("/perfil"),
-                        ),
-                        ft.OutlinedButton(
-                            "Volver al inicio",
-                            icon=ft.Icons.HOME_ROUNDED,
-                            style=ft.ButtonStyle(
-                                color=ft.Colors.WHITE,
-                                side=ft.BorderSide(
-                                    1.1,
-                                    ft.Colors.with_opacity(0.28, ft.Colors.WHITE),
-                                ),
-                                shape=ft.RoundedRectangleBorder(radius=16),
-                            ),
-                            on_click=lambda e: go("/"),
-                        ),
-                        ft.ElevatedButton(
-                            "Cerrar sesión",
-                            icon=ft.Icons.LOGOUT_ROUNDED,
-                            bgcolor="#64D7FF",
-                            color=ft.Colors.BLACK,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=16),
-                            ),
-                            on_click=cerrar_sesion,
                         ),
                     ],
                     spacing=12,

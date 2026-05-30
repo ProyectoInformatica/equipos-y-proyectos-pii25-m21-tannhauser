@@ -5,7 +5,7 @@ from models.session_manager import set_current_user
 
 def LoginUnificadoView(page: ft.Page, go):
     auth = AuthController()
-    mensaje = ft.Text("", color="#FF7B7B", size=14)
+    mensaje = ft.Text("", color="#FF9B9B", size=13, weight=ft.FontWeight.W_600)
 
     def ruta_por_rol(usuario):
         rol = (usuario.get("rol") or "").strip().lower()
@@ -51,11 +51,11 @@ def LoginUnificadoView(page: ft.Page, go):
         hint_text="Introduce tu correo",
         prefix_icon=ft.Icons.EMAIL_OUTLINED,
         width=380,
-        height=58,
-        border_radius=18,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border_color="#2C4E86",
-        focused_border_color="#5FD1FF",
+        height=60,
+        border_radius=16,
+        bgcolor=ft.Colors.with_opacity(0.07, ft.Colors.WHITE),
+        border_color=ft.Colors.with_opacity(0.18, ft.Colors.WHITE),
+        focused_border_color="#C8F3FF",
         color=ft.Colors.WHITE,
         text_size=15,
         on_submit=iniciar_sesion,
@@ -68,85 +68,135 @@ def LoginUnificadoView(page: ft.Page, go):
         password=True,
         can_reveal_password=True,
         width=380,
-        height=58,
-        border_radius=18,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border_color="#2C4E86",
-        focused_border_color="#5FD1FF",
+        height=60,
+        border_radius=16,
+        bgcolor=ft.Colors.with_opacity(0.07, ft.Colors.WHITE),
+        border_color=ft.Colors.with_opacity(0.18, ft.Colors.WHITE),
+        focused_border_color="#C8F3FF",
         color=ft.Colors.WHITE,
         text_size=15,
         on_submit=iniciar_sesion,
+    )
+
+    logo_premium = ft.Container(
+        width=208,
+        height=208,
+        border_radius=104,
+        padding=18,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+        bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
+        border=ft.border.all(1.4, ft.Colors.with_opacity(0.40, ft.Colors.CYAN_100)),
+        shadow=ft.BoxShadow(
+            spread_radius=0,
+            blur_radius=38,
+            color=ft.Colors.with_opacity(0.28, ft.Colors.CYAN_200),
+            offset=ft.Offset(0, 18),
+        ),
+        content=ft.Image(
+            src="logo_tannhauser.png",
+            fit=ft.ImageFit.CONTAIN,
+        ),
     )
 
     panel_izquierdo = ft.Container(
         expand=True,
         content=ft.Column(
             [
-                ft.Image(
-                    src="assets/logo_tannhauser.png",
-                    width=220,
-                    height=220,
-                    fit=ft.ImageFit.CONTAIN,
+                logo_premium,
+                ft.Container(height=10),
+                ft.Container(
+                    padding=ft.Padding(12, 6, 12, 6),
+                    border_radius=999,
+                    bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.CYAN_100),
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.16, ft.Colors.CYAN_100)),
+                    content=ft.Text(
+                        "Supermercado inteligente",
+                        size=12,
+                        weight=ft.FontWeight.BOLD,
+                        color="#BFF6FF",
+                    ),
                 ),
                 ft.Text(
                     "Tannhauser",
-                    size=42,
+                    size=52,
                     weight=ft.FontWeight.BOLD,
                     color=ft.Colors.WHITE,
                 ),
                 ft.Text(
                     "Accede a tu cuenta para consultar inventario, monitorización, actividad y gestión del supermercado inteligente.",
-                    size=16,
-                    color=ft.Colors.WHITE70,
-                    width=500,
+                    size=17,
+                    color=ft.Colors.with_opacity(0.78, ft.Colors.WHITE),
+                    width=540,
                     text_align=ft.TextAlign.LEFT,
+                ),
+                ft.Container(
+                    width=84,
+                    height=3,
+                    border_radius=999,
+                    gradient=ft.LinearGradient(
+                        begin=ft.Alignment(-1, 0),
+                        end=ft.Alignment(1, 0),
+                        colors=["#C8F3FF", "#67E8F9", "#2B6CB0"],
+                    ),
                 ),
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.START,
-            spacing=14,
+            spacing=16,
         ),
     )
 
     tarjeta_login = ft.Container(
-        width=470,
-        padding=36,
-        border_radius=30,
-        bgcolor=ft.Colors.with_opacity(0.14, ft.Colors.BLACK),
-        border=ft.border.all(1.2, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
+        width=492,
+        padding=ft.Padding(40, 38, 40, 34),
+        border_radius=28,
+        bgcolor="#081421",
+        border=ft.border.all(1.1, ft.Colors.with_opacity(0.18, ft.Colors.WHITE)),
         shadow=ft.BoxShadow(
             spread_radius=0,
-            blur_radius=30,
-            color=ft.Colors.with_opacity(0.18, ft.Colors.BLACK),
-            offset=ft.Offset(0, 10),
+            blur_radius=46,
+            color=ft.Colors.with_opacity(0.36, ft.Colors.BLACK),
+            offset=ft.Offset(0, 22),
         ),
         content=ft.Column(
             [
+                ft.Container(
+                    width=56,
+                    height=5,
+                    border_radius=999,
+                    gradient=ft.LinearGradient(
+                        begin=ft.Alignment(-1, 0),
+                        end=ft.Alignment(1, 0),
+                        colors=["#FFFFFF", "#67E8F9"],
+                    ),
+                ),
                 ft.Text(
                     "Iniciar sesión",
-                    size=30,
+                    size=34,
                     weight=ft.FontWeight.BOLD,
                     color=ft.Colors.WHITE,
                 ),
                 ft.Text(
                     "Acceso único para clientes, empleados y administración.",
-                    size=14,
-                    color=ft.Colors.WHITE70,
+                    size=15,
+                    color=ft.Colors.with_opacity(0.68, ft.Colors.WHITE),
+                    text_align=ft.TextAlign.CENTER,
                 ),
-                ft.Container(height=8),
+                ft.Container(height=10),
                 email,
                 password,
                 mensaje,
-                ft.Container(height=4),
+                ft.Container(height=2),
                 ft.ElevatedButton(
                     "Entrar",
                     icon=ft.Icons.ARROW_FORWARD_ROUNDED,
                     width=380,
-                    height=54,
-                    bgcolor="#5FD1FF",
-                    color=ft.Colors.BLACK,
+                    height=56,
+                    bgcolor="#C8F3FF",
+                    color="#06111D",
                     style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=18),
+                        shape=ft.RoundedRectangleBorder(radius=16),
+                        elevation=8,
                     ),
                     on_click=iniciar_sesion,
                 ),
@@ -162,21 +212,21 @@ def LoginUnificadoView(page: ft.Page, go):
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=14,
+            spacing=15,
         ),
     )
 
     contenido = ft.Container(
         expand=True,
-        padding=40,
+        padding=ft.Padding(64, 44, 64, 44),
         gradient=ft.LinearGradient(
             begin=ft.Alignment(-1, -1),
             end=ft.Alignment(1, 1),
             colors=[
-                "#071018",
-                "#10233F",
-                "#0F2A4F",
-                "#153969",
+                "#030712",
+                "#06111D",
+                "#0A1C2D",
+                "#12385C",
             ],
         ),
         content=ft.Row(

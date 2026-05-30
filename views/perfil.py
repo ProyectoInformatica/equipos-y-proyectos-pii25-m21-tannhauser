@@ -97,6 +97,10 @@ def PerfilView(page: ft.Page, go):
 
             page.update()
 
+    def cerrar_sesion(e):
+        set_current_user(None)
+        go("/")
+
     file_picker = ft.FilePicker(on_result=on_file_result)
     page.overlay.append(file_picker)
 
@@ -230,6 +234,16 @@ def PerfilView(page: ft.Page, go):
                                     shape=ft.RoundedRectangleBorder(radius=16),
                                 ),
                                 on_click=lambda e: go(ruta_dashboard_por_rol()),
+                            ),
+                            ft.ElevatedButton(
+                                "Cerrar sesión",
+                                icon=ft.Icons.LOGOUT_ROUNDED,
+                                bgcolor="#64D7FF",
+                                color=ft.Colors.BLACK,
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=16),
+                                ),
+                                on_click=cerrar_sesion,
                             ),
                         ],
                         spacing=14,

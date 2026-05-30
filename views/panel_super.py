@@ -77,7 +77,7 @@ def PanelSuperView(page: ft.Page, go):
                             bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
                             padding=10,
                             content=ft.Image(
-                                src="assets/logo_tannhauser.png",
+                                src="logo_tannhauser.png",
                                 fit=ft.ImageFit.CONTAIN,
                             ),
                         ),
@@ -105,24 +105,14 @@ def PanelSuperView(page: ft.Page, go):
                 ft.Row(
                     [
                         ft.OutlinedButton(
-                            "Volver al inicio",
-                            icon=ft.Icons.HOME_ROUNDED,
+                            "Mi perfil",
+                            icon=ft.Icons.PERSON_ROUNDED,
                             style=ft.ButtonStyle(
                                 color=ft.Colors.WHITE,
                                 side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
                                 shape=ft.RoundedRectangleBorder(radius=16),
                             ),
-                            on_click=lambda e: go("/"),
-                        ),
-                        ft.ElevatedButton(
-                            "Cerrar sesión",
-                            icon=ft.Icons.LOGOUT_ROUNDED,
-                            bgcolor="#64D7FF",
-                            color=ft.Colors.BLACK,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=16),
-                            ),
-                            on_click=cerrar_sesion,
+                            on_click=lambda e: go("/perfil"),
                         ),
                     ],
                     spacing=12,

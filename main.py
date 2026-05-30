@@ -330,6 +330,11 @@ def main(page: ft.Page):
         page.update()
         mostrar_siguiente_alerta()
 
+    def alertas_habilitadas_para_usuario():
+        usuario = get_current_user() or {}
+        rol = (usuario.get("rol") or "").strip().lower()
+        return rol in ["empleado", "administrador", "superusuario"]
+
     def ir_al_sensor_critico():
         critical_overlay.visible = False
         alerta_mostrando["valor"] = False
@@ -338,6 +343,15 @@ def main(page: ft.Page):
         mostrar_siguiente_alerta()
 
     def mostrar_siguiente_alerta():
+        if not alertas_habilitadas_para_usuario():
+            cola_alertas.clear()
+            critical_overlay.visible = False
+            alerta_mostrando["valor"] = False
+            if page.banner:
+                page.banner.open = False
+            page.update()
+            return
+
         if alerta_mostrando["valor"]:
             return
         if not cola_alertas:
@@ -440,8 +454,7 @@ def main(page: ft.Page):
     async def bucle_alertas():
         while True:
             try:
-                usuario = get_current_user()
-                if usuario:
+                if alertas_habilitadas_para_usuario():
                     nuevos = alerta_controller.obtener_eventos_nuevos(ultimo_evento_id["valor"])
                     if nuevos:
                         for evento in nuevos:
@@ -449,6 +462,9 @@ def main(page: ft.Page):
                                 ultimo_evento_id["valor"], evento["id"]
                             )
                             cola_alertas.append(evento)
+                        mostrar_siguiente_alerta()
+                else:
+                    if cola_alertas or alerta_mostrando["valor"] or critical_overlay.visible:
                         mostrar_siguiente_alerta()
             except Exception as e:
                 print(f"Error en bucle_alertas: {e}")
@@ -469,7 +485,7 @@ def main(page: ft.Page):
                 offset=ft.Offset(0, 6),
             ),
             content=ft.Image(
-                src="assets/logo_tannhauser.png",
+                src="logo_tannhauser.png",
                 fit=ft.ImageFit.CONTAIN,
             ),
         )
@@ -792,7 +808,7 @@ def main(page: ft.Page):
                 return
 
         if r == "/perfil":
-            if not usuario or usuario.get("rol") != "cliente":
+            if not usuario:
                 _denegar_acceso()
                 return
 

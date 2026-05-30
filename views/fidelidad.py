@@ -12,6 +12,11 @@ from controllers.fidelidad_controller import FidelidadController
 from models.session_manager import get_current_user
 
 
+TRANSPARENT_PNG_BASE64 = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
+)
+
+
 def FidelidadView(page: ft.Page, go):
     controller = FidelidadController()
     usuario = get_current_user() or {}
@@ -42,7 +47,7 @@ def FidelidadView(page: ft.Page, go):
         width=300,
     )
 
-    qr_image = ft.Image(width=240, height=240, fit=ft.ImageFit.CONTAIN)
+    qr_image = ft.Image(src_base64=TRANSPARENT_PNG_BASE64, width=240, height=240, fit=ft.ImageFit.CONTAIN)
     qr_label = ft.Text("", color="#8BE3FF", size=14, text_align=ft.TextAlign.CENTER)
 
     cupones_activos_column = ft.Column(spacing=14)
@@ -66,7 +71,7 @@ def FidelidadView(page: ft.Page, go):
             qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
             buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
+            img.save(buffer)
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
         except Exception:
             return None
@@ -313,15 +318,19 @@ def FidelidadView(page: ft.Page, go):
         gasto_text.value = f"{float(resumen.get('total_spent', 0) or 0):.2f} €"
         nivel_text.value = resumen.get("nivel", "Bronce")
 
+        identificador_qr = user_id or usuario.get("email") or usuario.get("nombre") or "cliente_local"
         payload_qr = json.dumps({
             "type": "tannhauser_loyalty",
-            "user_id": user_id,
+            "user_id": identificador_qr,
             "name": nombre,
-        })
+        }, ensure_ascii=False)
         qr_b64 = generar_qr_base64(payload_qr)
         if qr_b64:
             qr_image.src_base64 = qr_b64
-        qr_label.value = f"ID cliente: {user_id}"
+            qr_label.value = f"ID cliente: {identificador_qr}"
+        else:
+            qr_image.src_base64 = TRANSPARENT_PNG_BASE64
+            qr_label.value = "No se pudo generar el QR. Intentalo de nuevo mas tarde."
 
         cupones_activos = controller.obtener_cupones_activos(user_id)
         cupones_activos_column.controls.clear()
@@ -547,7 +556,7 @@ def FidelidadView(page: ft.Page, go):
         ]
     )
 
-    if user_id:
+    if usuario:
         refrescar_todo()
 
     return vista

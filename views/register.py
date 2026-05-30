@@ -145,6 +145,9 @@ def RegistroView(page: ft.Page, go):
         mensaje.value = msg
         page.update()
 
+    for campo in (nombre, email, password, password2):
+        campo.on_submit = registrar
+
     topbar = ft.Container(
         width=1180,
         padding=ft.Padding(24, 18, 24, 18),
@@ -162,7 +165,7 @@ def RegistroView(page: ft.Page, go):
                             bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
                             padding=10,
                             content=ft.Image(
-                                src="assets/logo_tannhauser.png",
+                                src="logo_tannhauser.png",
                                 fit=ft.ImageFit.CONTAIN,
                             ),
                         ),
