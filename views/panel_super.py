@@ -1,5 +1,16 @@
 import flet as ft
 from models.session_manager import get_current_user, set_current_user
+from utils.ui_premium import (
+    premium_page,
+    premium_header,
+    primary_button,
+    secondary_button,
+    action_card,
+    status_badge,
+    SURFACE,
+    TEXT_MUTED,
+    CHAMPAGNE,
+)
 
 
 def PanelSuperView(page: ft.Page, go):
@@ -11,6 +22,8 @@ def PanelSuperView(page: ft.Page, go):
         go("/")
 
     def card_opcion(icono, titulo, texto, ruta, color_icono="#9CEBFF"):
+        return action_card(icono, titulo, texto, "Abrir", on_click=lambda e: go(ruta))
+
         return ft.Container(
             width=320,
             padding=24,
@@ -123,6 +136,15 @@ def PanelSuperView(page: ft.Page, go):
         ),
     )
 
+    header = premium_header(
+        "Centro de administración global",
+        "Bienvenido",
+        name=nombre,
+        actions=[
+            secondary_button("Mi perfil", ft.Icons.PERSON_ROUNDED, on_click=lambda e: go("/perfil")),
+        ],
+    )
+
     resumen = ft.Container(
         width=1180,
         padding=28,
@@ -135,6 +157,15 @@ def PanelSuperView(page: ft.Page, go):
                     expand=True,
                     content=ft.Column(
                         [
+                            ft.Row(
+                                [
+                                    status_badge("Control total", "gold"),
+                                    status_badge("Administración", "cyan"),
+                                    status_badge("Crítico", "green"),
+                                ],
+                                spacing=10,
+                                wrap=True,
+                            ),
                             ft.Text(
                                 "Control total de la plataforma",
                                 size=40,
@@ -253,6 +284,15 @@ def PanelSuperView(page: ft.Page, go):
         alignment=ft.MainAxisAlignment.CENTER,
     )
 
+    resumen.bgcolor = SURFACE
+    resumen.border = ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE))
+    resumen.shadow = ft.BoxShadow(
+        spread_radius=0,
+        blur_radius=32,
+        color=ft.Colors.with_opacity(0.26, ft.Colors.BLACK),
+        offset=ft.Offset(0, 16),
+    )
+
     contenido = ft.Container(
         expand=True,
         padding=30,
@@ -282,6 +322,20 @@ def PanelSuperView(page: ft.Page, go):
             spacing=0,
             scroll=ft.ScrollMode.AUTO,
         ),
+    )
+
+    contenido = premium_page(
+        [
+            header,
+            ft.Container(height=18),
+            resumen,
+            ft.Container(height=24),
+            grid,
+            ft.Container(height=20),
+            grid2,
+            ft.Container(height=20),
+            grid3,
+        ]
     )
 
     return ft.View(

@@ -11,6 +11,19 @@ except Exception:
 from models.session_manager import get_current_user, set_current_user
 from controllers.fidelidad_controller import FidelidadController
 from models.user_manager import UserManager
+from utils.ui_premium import (
+    premium_page,
+    premium_header,
+    premium_card,
+    primary_button,
+    secondary_button,
+    metric_card as premium_metric_card,
+    action_card as premium_action_card,
+    status_badge,
+    SURFACE,
+    TEXT_MUTED,
+    CHAMPAGNE,
+)
 
 
 def PanelUsuarioView(page: ft.Page, go):
@@ -118,6 +131,15 @@ def PanelUsuarioView(page: ft.Page, go):
     qr_b64 = generar_qr_base64(payload_qr)
 
     def stat_card(icono, titulo, valor, subtitulo, color_icono="#9CEBFF"):
+        return premium_metric_card(
+            icono,
+            titulo,
+            valor,
+            subtitulo,
+            tone="gold" if icono == ft.Icons.STARS_ROUNDED else "cyan",
+            col={"xs": 12, "sm": 6, "md": 4},
+        )
+
         return ft.Container(
             col={"xs": 12, "sm": 6, "md": 4},
             padding=20,
@@ -166,6 +188,15 @@ def PanelUsuarioView(page: ft.Page, go):
         )
 
     def action_card(icono, titulo, texto, boton_texto, ruta, color_icono="#9CEBFF"):
+        return premium_action_card(
+            icono,
+            titulo,
+            texto,
+            boton_texto,
+            on_click=lambda e: go(ruta),
+            col={"xs": 12, "sm": 6, "md": 4},
+        )
+
         return ft.Container(
             col={"xs": 12, "sm": 6, "md": 4},
             padding=24,
@@ -441,6 +472,15 @@ def PanelUsuarioView(page: ft.Page, go):
         ),
     )
 
+    header = premium_header(
+        "Área de cliente",
+        "Bienvenido",
+        name=nombre,
+        actions=[
+            secondary_button("Mi perfil", ft.Icons.PERSON_ROUNDED, on_click=lambda e: go("/perfil")),
+        ],
+    )
+
     hero = ft.Container(
         width=1180,
         padding=28,
@@ -555,6 +595,15 @@ def PanelUsuarioView(page: ft.Page, go):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
+    )
+
+    hero.bgcolor = SURFACE
+    hero.border = ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE))
+    hero.shadow = ft.BoxShadow(
+        spread_radius=0,
+        blur_radius=32,
+        color=ft.Colors.with_opacity(0.26, ft.Colors.BLACK),
+        offset=ft.Offset(0, 16),
     )
 
     stats = ft.ResponsiveRow(
@@ -797,6 +846,16 @@ def PanelUsuarioView(page: ft.Page, go):
         ),
     )
 
+    for section in (fidelidad_section, cupones_section, ofertas_section):
+        section.bgcolor = SURFACE
+        section.border = ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE))
+        section.shadow = ft.BoxShadow(
+            spread_radius=0,
+            blur_radius=26,
+            color=ft.Colors.with_opacity(0.22, ft.Colors.BLACK),
+            offset=ft.Offset(0, 12),
+        )
+
     contenido = ft.Container(
         expand=True,
         padding=30,
@@ -830,6 +889,24 @@ def PanelUsuarioView(page: ft.Page, go):
             spacing=0,
             scroll=ft.ScrollMode.AUTO,
         ),
+    )
+
+    contenido = premium_page(
+        [
+            header,
+            ft.Container(height=18),
+            hero,
+            ft.Container(height=22),
+            stats,
+            ft.Container(height=22),
+            acciones,
+            ft.Container(height=22),
+            fidelidad_section,
+            ft.Container(height=22),
+            cupones_section,
+            ft.Container(height=22),
+            ofertas_section,
+        ]
     )
 
     return ft.View(
