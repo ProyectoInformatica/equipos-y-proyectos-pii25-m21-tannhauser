@@ -29,7 +29,7 @@ def logo_mark(size=72):
     )
 
 
-def primary_button(text, icon=None, on_click=None, width=None):
+def primary_button(text, icon=None, on_click=None, width=None, disabled=False, visible=True, data=None):
     return ft.ElevatedButton(
         text,
         icon=icon,
@@ -43,10 +43,13 @@ def primary_button(text, icon=None, on_click=None, width=None):
             padding=ft.Padding(20, 0, 20, 0),
         ),
         on_click=on_click,
+        disabled=disabled,
+        visible=visible,
+        data=data,
     )
 
 
-def secondary_button(text, icon=None, on_click=None, width=None):
+def secondary_button(text, icon=None, on_click=None, width=None, disabled=False, visible=True, data=None):
     return ft.OutlinedButton(
         text,
         icon=icon,
@@ -59,10 +62,13 @@ def secondary_button(text, icon=None, on_click=None, width=None):
             padding=ft.Padding(18, 0, 18, 0),
         ),
         on_click=on_click,
+        disabled=disabled,
+        visible=visible,
+        data=data,
     )
 
 
-def danger_button(text, icon=None, on_click=None, width=None):
+def danger_button(text, icon=None, on_click=None, width=None, disabled=False, visible=True, data=None):
     return ft.OutlinedButton(
         text,
         icon=icon,
@@ -75,6 +81,72 @@ def danger_button(text, icon=None, on_click=None, width=None):
             padding=ft.Padding(18, 0, 18, 0),
         ),
         on_click=on_click,
+        disabled=disabled,
+        visible=visible,
+        data=data,
+    )
+
+
+def premium_text_field(control):
+    control.border_radius = 16
+    control.border_color = ft.Colors.with_opacity(0.22, ft.Colors.CYAN_100)
+    control.focused_border_color = ACCENT_STRONG
+    control.bgcolor = ft.Colors.with_opacity(0.055, ft.Colors.WHITE)
+    control.color = ft.Colors.WHITE
+    control.label_style = ft.TextStyle(color=ft.Colors.WHITE70)
+    control.hint_style = ft.TextStyle(color=ft.Colors.WHITE38)
+    return control
+
+
+def premium_dropdown(control):
+    control.border_radius = 16
+    control.border_color = ft.Colors.with_opacity(0.22, ft.Colors.CYAN_100)
+    control.focused_border_color = ACCENT_STRONG
+    control.bgcolor = ft.Colors.with_opacity(0.055, ft.Colors.WHITE)
+    control.color = ft.Colors.WHITE
+    control.label_style = ft.TextStyle(color=ft.Colors.WHITE70)
+    return control
+
+
+def premium_section_title(title, subtitle=None, icon=None):
+    controls = []
+    if icon:
+        controls.append(
+            ft.Container(
+                width=42,
+                height=42,
+                border_radius=14,
+                bgcolor=ft.Colors.with_opacity(0.12, CHAMPAGNE),
+                border=ft.border.all(1, ft.Colors.with_opacity(0.15, CHAMPAGNE)),
+                alignment=ft.alignment.center,
+                content=ft.Icon(icon, color=CHAMPAGNE, size=22),
+            )
+        )
+    controls.append(
+        ft.Column(
+            [
+                ft.Text(title, size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                ft.Text(subtitle, size=14, color=TEXT_MUTED) if subtitle else ft.Container(),
+            ],
+            spacing=4,
+        )
+    )
+    return ft.Row(controls, spacing=12, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+
+
+def premium_empty_state(text, icon=ft.Icons.INFO_OUTLINE_ROUNDED, width=None):
+    return premium_card(
+        width=width,
+        padding=24,
+        border_radius=22,
+        content=ft.Column(
+            [
+                ft.Icon(icon, color=ft.Colors.WHITE54, size=38),
+                ft.Text(text, size=15, color=TEXT_MUTED, text_align=ft.TextAlign.CENTER),
+            ],
+            spacing=10,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
     )
 
 

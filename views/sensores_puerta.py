@@ -4,6 +4,7 @@ import time
 from controllers.sensor_controller import SensorController
 from models.session_manager import get_current_user
 from models.session_manager import get_panel_route_for_current_user
+from utils.ui_premium import danger_button, primary_button, secondary_button
 
 
 class SensoresPuertaView(ft.View):
@@ -54,16 +55,14 @@ class SensoresPuertaView(ft.View):
         )
         
         # Botones para iniciar/detener simulación
-        self.btn_iniciar = ft.ElevatedButton(
+        self.btn_iniciar = primary_button(
             "Iniciar Simulación",
             icon=ft.Icons.PLAY_ARROW,
-            bgcolor=ft.Colors.CYAN_400,
             on_click=self.iniciar_simulacion,
         )
-        self.btn_detener = ft.ElevatedButton(
+        self.btn_detener = danger_button(
             "Detener Simulación",
             icon=ft.Icons.STOP,
-            bgcolor=ft.Colors.RED_700,
             on_click=self.detener_simulacion,
             disabled=True,
         )
@@ -76,16 +75,14 @@ class SensoresPuertaView(ft.View):
         # Botones de control manual
         botones_control = ft.Row(
             [
-                ft.ElevatedButton(
+                primary_button(
                     "Abrir Puerta",
                     icon=ft.Icons.ARROW_UPWARD,
-                    bgcolor=ft.Colors.GREEN_400,
                     on_click=self.abrir_puerta,
                 ),
-                ft.ElevatedButton(
+                danger_button(
                     "Cerrar Puerta",
                     icon=ft.Icons.ARROW_DOWNWARD,
-                    bgcolor=ft.Colors.RED_400,
                     on_click=self.cerrar_puerta,
                 ),
             ],
@@ -93,16 +90,15 @@ class SensoresPuertaView(ft.View):
             spacing=20,
         )
 
-        boton_atras = ft.ElevatedButton(
+        boton_atras = secondary_button(
             "Atrás",
             icon=ft.Icons.ARROW_BACK,
             on_click=self.ir_atras,
         )
 
-        boton_panel_admin = ft.ElevatedButton(
+        boton_panel_admin = secondary_button(
             "Panel de Administrador",
             icon=ft.Icons.ADMIN_PANEL_SETTINGS,
-            bgcolor=ft.Colors.ORANGE_700,
             on_click=self.ir_panel_admin,
         )
 

@@ -1,6 +1,7 @@
 import asyncio
 import flet as ft
 from controllers.sensor_controller import SensorController
+from utils.ui_premium import primary_button, secondary_button
 
 
 class EmpleadoSensoresView(ft.View):
@@ -97,24 +98,14 @@ class EmpleadoSensoresView(ft.View):
                                 ),
                                 ft.Row(
                                     [
-                                        ft.OutlinedButton(
+                                        secondary_button(
                                             "Volver al panel",
                                             icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                            style=ft.ButtonStyle(
-                                                color=ft.Colors.WHITE,
-                                                side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=lambda e: self.go("/panel_empleado"),
                                         ),
-                                        ft.ElevatedButton(
+                                        primary_button(
                                             "Refrescar",
                                             icon=ft.Icons.REFRESH_ROUNDED,
-                                            bgcolor="#64D7FF",
-                                            color=ft.Colors.BLACK,
-                                            style=ft.ButtonStyle(
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=self.refrescar_datos,
                                         ),
                                     ],

@@ -2,6 +2,7 @@ import flet as ft
 from controllers.sensor_controller import SensorController
 from models.session_manager import get_current_user
 from models.session_manager import get_panel_route_for_current_user
+from utils.ui_premium import danger_button, primary_button, secondary_button
 
 
 class AdminSimulacionView(ft.View):
@@ -69,29 +70,25 @@ class AdminSimulacionView(ft.View):
         # Botones para controlar simulación y auto-guardado de lecturas
         self.autosave_estado = False
         # Buttons: stored as attributes to allow toggling disabled states
-        self.btn_iniciar_sim = ft.ElevatedButton(
+        self.btn_iniciar_sim = primary_button(
             "Iniciar Simulación",
             icon=ft.Icons.PLAY_ARROW,
-            bgcolor=ft.Colors.GREEN_600,
             on_click=self.iniciar_simulacion,
         )
-        self.btn_detener_sim = ft.ElevatedButton(
+        self.btn_detener_sim = danger_button(
             "Detener Simulación",
             icon=ft.Icons.STOP,
-            bgcolor=ft.Colors.RED_600,
             on_click=self.detener_simulacion,
             disabled=True,
         )
-        self.btn_iniciar_autosave = ft.ElevatedButton(
+        self.btn_iniciar_autosave = primary_button(
             "Iniciar Autoguardado",
             icon=ft.Icons.SAVE,
-            bgcolor=ft.Colors.ORANGE_700,
             on_click=self.iniciar_autoguardado,
         )
-        self.btn_detener_autosave = ft.ElevatedButton(
+        self.btn_detener_autosave = danger_button(
             "Detener Autoguardado",
             icon=ft.Icons.STOP,
-            bgcolor=ft.Colors.INDIGO_700,
             on_click=self.detener_autoguardado,
             disabled=True,
         )
@@ -99,14 +96,14 @@ class AdminSimulacionView(ft.View):
             controls=[
                 self.btn_iniciar_sim,
                 self.btn_detener_sim,
-                ft.ElevatedButton(
+                secondary_button(
                     "Refrescar Estado",
                     icon=ft.Icons.REFRESH,
                     on_click=self.refrescar_estado,
                 ),
                 self.btn_iniciar_autosave,
                 self.btn_detener_autosave,
-                ft.TextButton(
+                secondary_button(
                     "Volver al Panel",
                     icon=ft.Icons.ARROW_BACK,
                     on_click=lambda e: self.go(get_panel_route_for_current_user()),

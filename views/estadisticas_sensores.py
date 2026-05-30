@@ -4,6 +4,7 @@ import statistics
 from datetime import datetime, timedelta
 import flet as ft
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import primary_button, secondary_button
 
 
 class EstadisticasSensoresView(ft.View):
@@ -64,24 +65,14 @@ class EstadisticasSensoresView(ft.View):
                                 ),
                                 ft.Row(
                                     [
-                                        ft.ElevatedButton(
+                                        primary_button(
                                             "Actualizar estadísticas",
                                             icon=ft.Icons.REFRESH_ROUNDED,
-                                            bgcolor="#64D7FF",
-                                            color=ft.Colors.BLACK,
-                                            style=ft.ButtonStyle(
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=lambda e: self.refrescar_estadisticas(),
                                         ),
-                                        ft.OutlinedButton(
+                                        secondary_button(
                                             "Volver",
                                             icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                            style=ft.ButtonStyle(
-                                                color=ft.Colors.WHITE,
-                                                side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=lambda e: self.go(ruta_dashboard_por_rol()),
                                         ),
                                     ],

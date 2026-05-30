@@ -1,6 +1,7 @@
 import flet as ft
 from controllers.umbral_controller import UmbralController
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import danger_button, premium_dropdown, premium_empty_state, premium_text_field, primary_button, secondary_button
 
 
 class AdminUmbralesView(ft.View):
@@ -169,12 +170,10 @@ class AdminUmbralesView(ft.View):
                 ),
             ),
             actions=[
-                ft.TextButton("Cancelar", on_click=self._cerrar_dialogo),
-                ft.ElevatedButton(
+                secondary_button("Cancelar", on_click=self._cerrar_dialogo),
+                primary_button(
                     "Crear regla",
                     icon=ft.Icons.ADD_ALERT_ROUNDED,
-                    bgcolor="#64D7FF",
-                    color=ft.Colors.BLACK,
                     on_click=guardar_nueva,
                 ),
             ],
@@ -292,24 +291,14 @@ class AdminUmbralesView(ft.View):
                     desc_tf,
                     ft.Row(
                         [
-                            ft.OutlinedButton(
+                            danger_button(
                                 "Eliminar",
                                 icon=ft.Icons.DELETE_OUTLINE_ROUNDED,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.RED_300,
-                                    side=ft.BorderSide(1.0, ft.Colors.with_opacity(0.22, ft.Colors.RED_300)),
-                                    shape=ft.RoundedRectangleBorder(radius=14),
-                                ),
                                 on_click=lambda e, rid=row["id"]: self._eliminar(rid),
                             ),
-                            ft.ElevatedButton(
+                            primary_button(
                                 "Guardar cambios",
                                 icon=ft.Icons.SAVE_ROUNDED,
-                                bgcolor="#64D7FF",
-                                color=ft.Colors.BLACK,
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=14),
-                                ),
                                 on_click=lambda e, rid=row["id"], o=op_dd, v=val_tf, s=sev_dd, t=title_tf, d=desc_tf, a=active_sw:
                                     self._guardar(rid, o, v, s, t, d, a),
                             ),
@@ -328,18 +317,7 @@ class AdminUmbralesView(ft.View):
 
         if not rows:
             self.lista.controls.append(
-                ft.Container(
-                    width=1180,
-                    padding=22,
-                    border_radius=22,
-                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
-                    content=ft.Text(
-                        "No hay reglas configuradas.",
-                        color=ft.Colors.WHITE70,
-                        size=15,
-                    ),
-                )
+                premium_empty_state("No hay reglas configuradas.", ft.Icons.RULE_ROUNDED, width=1180)
             )
             self.update()
             return
@@ -389,34 +367,19 @@ class AdminUmbralesView(ft.View):
                                 ),
                                 ft.Row(
                                     [
-                                        ft.ElevatedButton(
+                                        primary_button(
                                             "Nueva regla",
                                             icon=ft.Icons.ADD_ALERT_ROUNDED,
-                                            bgcolor="#64D7FF",
-                                            color=ft.Colors.BLACK,
-                                            style=ft.ButtonStyle(
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=self._crear_nueva_regla,
                                         ),
-                                        ft.OutlinedButton(
+                                        secondary_button(
                                             "Refrescar",
                                             icon=ft.Icons.REFRESH_ROUNDED,
-                                            style=ft.ButtonStyle(
-                                                color=ft.Colors.WHITE,
-                                                side=ft.BorderSide(1.0, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=self.refrescar,
                                         ),
-                                        ft.OutlinedButton(
+                                        secondary_button(
                                             "Volver al panel",
                                             icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                            style=ft.ButtonStyle(
-                                                color=ft.Colors.WHITE,
-                                                side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=lambda e: self.go(ruta_dashboard_por_rol()),
                                         ),
                                     ],

@@ -2,6 +2,7 @@ import flet as ft
 from models.session_manager import get_current_user, set_current_user
 from controllers.profile_controller import ProfileController
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import danger_button, premium_text_field, primary_button, secondary_button, status_badge
 
 
 def PerfilView(page: ft.Page, go):
@@ -153,12 +154,7 @@ def PerfilView(page: ft.Page, go):
                                 color=ft.Colors.WHITE70,
                                 text_align=ft.TextAlign.CENTER,
                             ),
-                            ft.Text(
-                                f"Rol: {rol}",
-                                size=15,
-                                color="#9CEBFF",
-                                text_align=ft.TextAlign.CENTER,
-                            ),
+                            status_badge(f"Rol: {rol}", "cyan"),
                             ft.Text(
                                 "Gestiona tus datos, tu contraseña y tu foto de perfil.",
                                 size=14,
@@ -175,27 +171,17 @@ def PerfilView(page: ft.Page, go):
                             ),
                             ft.Row(
                                 [
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Seleccionar nueva foto",
                                         icon=ft.Icons.UPLOAD_FILE_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: file_picker.pick_files(
                                             allow_multiple=False,
                                             allowed_extensions=["png", "jpg", "jpeg", "webp"],
                                         ),
                                     ),
-                                    ft.OutlinedButton(
+                                    secondary_button(
                                         "Guardar foto",
                                         icon=ft.Icons.SAVE_ROUNDED,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=guardar_foto,
                                     ),
                                 ],
@@ -210,13 +196,13 @@ def PerfilView(page: ft.Page, go):
                                 color=ft.Colors.WHITE,
                                 text_align=ft.TextAlign.CENTER,
                             ),
-                            ft.TextField(
+                            premium_text_field(ft.TextField(
                                 label="Nombre",
                                 value=nombre,
                                 read_only=True,
                                 border_radius=16,
                                 width=460,
-                            ),
+                            )),
                             ft.TextField(
                                 label="Correo electrónico",
                                 value=email,
@@ -225,24 +211,14 @@ def PerfilView(page: ft.Page, go):
                                 width=460,
                             ),
                             ft.Container(height=6),
-                            ft.OutlinedButton(
+                            secondary_button(
                                 "Volver",
                                 icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE,
-                                    side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                    shape=ft.RoundedRectangleBorder(radius=16),
-                                ),
                                 on_click=lambda e: go(ruta_dashboard_por_rol()),
                             ),
-                            ft.ElevatedButton(
+                            danger_button(
                                 "Cerrar sesión",
                                 icon=ft.Icons.LOGOUT_ROUNDED,
-                                bgcolor="#64D7FF",
-                                color=ft.Colors.BLACK,
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=16),
-                                ),
                                 on_click=cerrar_sesion,
                             ),
                         ],

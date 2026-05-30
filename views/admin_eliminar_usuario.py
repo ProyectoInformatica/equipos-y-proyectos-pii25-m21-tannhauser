@@ -2,6 +2,7 @@ import flet as ft
 from controllers.user_controller import UserController
 from controllers.auth_controller import AuthController
 from models.session_manager import get_current_user, get_panel_route_for_current_user
+from utils.ui_premium import danger_button, premium_card, premium_page, premium_text_field, primary_button, secondary_button
 
 
 class AdminEliminarUsuarioView(ft.View):
@@ -12,9 +13,9 @@ class AdminEliminarUsuarioView(ft.View):
         self.uc = UserController()
         self.auth = AuthController()
 
-        self.input_nombre = ft.TextField(label="Nombre o Email del usuario", width=350)
-        self.btn_buscar = ft.ElevatedButton("Buscar", icon=ft.Icons.SEARCH, on_click=self.buscar_usuario)
-        self.btn_eliminar = ft.ElevatedButton("Eliminar Usuario", icon=ft.Icons.DELETE, bgcolor=ft.Colors.RED_700, on_click=self.confirmar_eliminar)
+        self.input_nombre = premium_text_field(ft.TextField(label="Nombre o Email del usuario", width=350))
+        self.btn_buscar = primary_button("Buscar", icon=ft.Icons.SEARCH, on_click=self.buscar_usuario)
+        self.btn_eliminar = danger_button("Eliminar Usuario", icon=ft.Icons.DELETE, on_click=self.confirmar_eliminar)
         self.btn_eliminar.disabled = True
 
         self.detalle = ft.Column()
@@ -25,17 +26,16 @@ class AdminEliminarUsuarioView(ft.View):
         titulo = ft.Text("Eliminar Usuario", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.CYAN_200)
         subtitulo = ft.Text("Introduce el nombre o email del usuario que deseas eliminar.", size=14, color=ft.Colors.WHITE70)
 
-        boton_volver = ft.TextButton("Volver al Panel", icon=ft.Icons.ARROW_BACK, on_click=lambda e: self._volver_al_panel())
+        boton_volver = secondary_button("Volver al Panel", icon=ft.Icons.ARROW_BACK, on_click=lambda e: self._volver_al_panel())
 
-        formulario = ft.Container(
-            padding=20,
-            border_radius=12,
-            bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.BLUE_GREY_900),
+        formulario = premium_card(
+            padding=24,
+            border_radius=24,
             content=ft.Column([self.input_nombre, ft.Row([self.btn_buscar, self.btn_eliminar], spacing=10), self.detalle]),
         )
 
         self.controls = [
-            ft.Column(controls=[titulo, subtitulo, ft.Divider(), formulario, ft.Divider(), boton_volver], spacing=12)
+            premium_page([titulo, subtitulo, ft.Container(height=8), formulario, boton_volver])
         ]
 
     def buscar_usuario(self, e):
@@ -158,8 +158,8 @@ class AdminEliminarUsuarioView(ft.View):
             title=ft.Text("Confirmar eliminación"),
             content=ft.Column([ft.Text(f"Introduce la contraseña del administrador para confirmar la eliminación del usuario con email {email}."), password_field]),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda e: dlg.dismiss()),
-                ft.ElevatedButton("Confirmar y Eliminar", bgcolor=ft.Colors.RED_700, on_click=on_confirm_password),
+                secondary_button("Cancelar", on_click=lambda e: dlg.dismiss()),
+                danger_button("Confirmar y Eliminar", on_click=on_confirm_password),
             ],
         )
         self.page.dialog = dlg

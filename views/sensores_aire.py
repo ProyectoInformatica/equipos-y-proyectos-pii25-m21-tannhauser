@@ -1,96 +1,72 @@
 import flet as ft
 from controllers.sensor_controller import SensorController
+from utils.ui_premium import premium_card, premium_header, premium_page, primary_button, secondary_button
 
 
 class SensoresAireView(ft.View):
     def __init__(self, page: ft.Page):
-        super().__init__(route="/sensores_aire")
+        super().__init__(route="/sensores_aire", padding=0, spacing=0)
         self._page = page
         self.controller = SensorController()
 
-        self.temp_text = ft.Text("—", size=24, weight=ft.FontWeight.BOLD)
-        self.hum_text = ft.Text("—", size=24, weight=ft.FontWeight.BOLD)
-        self.aire_text = ft.Text("—", size=24, weight=ft.FontWeight.BOLD)
+        self.temp_text = ft.Text("-", size=24, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        self.hum_text = ft.Text("-", size=24, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        self.aire_text = ft.Text("-", size=24, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
 
         self.controls = self.construir_ui()
 
     def tarjeta(self, titulo: str, icono, valor_widget: ft.Text):
-        return ft.Container(
+        valor_widget.color = ft.Colors.WHITE
+        return premium_card(
+            col={"xs": 12, "md": 4},
+            padding=22,
+            border_radius=24,
             content=ft.Column(
                 [
                     ft.Row(
                         [
-                            ft.Icon(icono, size=28),
-                            ft.Text(titulo, size=18, weight=ft.FontWeight.BOLD),
+                            ft.Icon(icono, size=28, color="#C8F3FF"),
+                            ft.Text(titulo, size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
-                    ft.Divider(),
-                    ft.Container(
-                        content=valor_widget,
-                        alignment=ft.alignment.center,
-                        padding=10,
-                    ),
+                    ft.Divider(color=ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                    ft.Container(content=valor_widget, alignment=ft.alignment.center, padding=10),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=10,
             ),
-            padding=20,
-            border_radius=16,
-            bgcolor=ft.Colors.BLUE_50,
-            expand=True,
         )
 
     def construir_ui(self):
         return [
-            ft.AppBar(
-                title=ft.Text("Sensores de Aire"),
-                center_title=True,
-                bgcolor=ft.Colors.BLUE_200,
-                leading=ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK,
-                    on_click=lambda e: self._page.go("/principal"),
-                ),
-            ),
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Text(
-                            "Lecturas actuales del sistema",
-                            size=24,
-                            weight=ft.FontWeight.BOLD,
-                        ),
-                        ft.Text(
-                            "Datos leídos desde la base de datos (current_state)",
-                            size=14,
-                            color=ft.Colors.GREY_700,
-                        ),
-                        ft.ResponsiveRow(
-                            [
-                                self.tarjeta("Temperatura", ft.Icons.THERMOSTAT, self.temp_text),
-                                self.tarjeta("Humedad", ft.Icons.WATER_DROP, self.hum_text),
-                                self.tarjeta("Calidad del aire", ft.Icons.AIR, self.aire_text),
-                            ],
-                            spacing=20,
-                            run_spacing=20,
-                        ),
-                        ft.Row(
-                            [
-                                ft.ElevatedButton(
-                                    "Refrescar datos",
-                                    icon=ft.Icons.REFRESH,
-                                    on_click=self.refrescar_datos,
-                                )
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                        ),
-                    ],
-                    spacing=20,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
-                padding=20,
-                expand=True,
+            premium_page(
+                [
+                    premium_header(
+                        "Sensores de aire",
+                        "Lecturas actuales desde current_state.",
+                        actions=[
+                            secondary_button(
+                                "Volver",
+                                ft.Icons.ARROW_BACK_ROUNDED,
+                                on_click=lambda e: self._page.go("/principal"),
+                            )
+                        ],
+                    ),
+                    ft.Container(height=18),
+                    ft.ResponsiveRow(
+                        [
+                            self.tarjeta("Temperatura", ft.Icons.THERMOSTAT, self.temp_text),
+                            self.tarjeta("Humedad", ft.Icons.WATER_DROP, self.hum_text),
+                            self.tarjeta("Calidad del aire", ft.Icons.AIR, self.aire_text),
+                        ],
+                        spacing=20,
+                        run_spacing=20,
+                    ),
+                    ft.Container(height=16),
+                    primary_button("Refrescar datos", ft.Icons.REFRESH_ROUNDED, self.refrescar_datos),
+                ]
             ),
         ]
 
@@ -104,19 +80,8 @@ class SensoresAireView(ft.View):
         hum = estados.get("HUM_AIR")
         aire = estados.get("MQ135_AIR")
 
-        if temp and temp.get("numeric_value") is not None:
-            self.temp_text.value = f"{temp['numeric_value']} °C"
-        else:
-            self.temp_text.value = "Sin dato"
-
-        if hum and hum.get("numeric_value") is not None:
-            self.hum_text.value = f"{hum['numeric_value']} %"
-        else:
-            self.hum_text.value = "Sin dato"
-
-        if aire and aire.get("numeric_value") is not None:
-            self.aire_text.value = f"{aire['numeric_value']} raw"
-        else:
-            self.aire_text.value = "Sin dato"
+        self.temp_text.value = f"{temp['numeric_value']} C" if temp and temp.get("numeric_value") is not None else "Sin dato"
+        self.hum_text.value = f"{hum['numeric_value']} %" if hum and hum.get("numeric_value") is not None else "Sin dato"
+        self.aire_text.value = f"{aire['numeric_value']} raw" if aire and aire.get("numeric_value") is not None else "Sin dato"
 
         self.update()

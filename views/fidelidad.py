@@ -10,6 +10,7 @@ except Exception:
 
 from controllers.fidelidad_controller import FidelidadController
 from models.session_manager import get_current_user
+from utils.ui_premium import premium_card, premium_empty_state, primary_button, secondary_button, status_badge
 
 
 TRANSPARENT_PNG_BASE64 = (
@@ -172,25 +173,15 @@ def FidelidadView(page: ft.Page, go):
                     ),
                     ft.Row(
                         [
-                            ft.OutlinedButton(
+                            secondary_button(
                                 "Copiar código",
                                 icon=ft.Icons.CONTENT_COPY_ROUNDED,
                                 on_click=lambda e, c=codigo: copiar_codigo(c),
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE,
-                                    side=ft.BorderSide(1, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                                    shape=ft.RoundedRectangleBorder(radius=14),
-                                ),
                             ),
-                            ft.ElevatedButton(
+                            primary_button(
                                 "Marcar como usado",
                                 icon=ft.Icons.CHECK_CIRCLE_ROUNDED,
                                 on_click=lambda e, cid=cupon["id"]: marcar_usado(cid),
-                                bgcolor="#67E8F9",
-                                color=ft.Colors.BLACK,
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=14),
-                                ),
                             ),
                         ],
                         spacing=12
@@ -223,16 +214,11 @@ def FidelidadView(page: ft.Page, go):
                         spacing=8,
                         expand=True,
                     ),
-                    ft.ElevatedButton(
+                    primary_button(
                         "Canjear",
                         icon=ft.Icons.REDEEM_ROUNDED,
                         on_click=lambda e, oid=oferta["id"]: canjear_oferta(oid),
                         disabled=not disponible,
-                        bgcolor="#67E8F9" if disponible else ft.Colors.GREY_700,
-                        color=ft.Colors.BLACK if disponible else ft.Colors.WHITE60,
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=16),
-                        ),
                     )
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -401,15 +387,10 @@ def FidelidadView(page: ft.Page, go):
                                     spacing=6,
                                     expand=True,
                                 ),
-                                ft.OutlinedButton(
+                                secondary_button(
                                     "Volver al panel",
                                     icon=ft.Icons.ARROW_BACK_ROUNDED,
                                     on_click=lambda e: go(ruta_volver()),
-                                    style=ft.ButtonStyle(
-                                        color=ft.Colors.WHITE,
-                                        side=ft.BorderSide(1, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                                        shape=ft.RoundedRectangleBorder(radius=18),
-                                    ),
                                 )
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -473,16 +454,10 @@ def FidelidadView(page: ft.Page, go):
                                                 [
                                                     compra_input,
                                                     referencia_input,
-                                                    ft.ElevatedButton(
+                                                    primary_button(
                                                         "Sumar puntos",
                                                         icon=ft.Icons.QR_CODE_SCANNER_ROUNDED,
                                                         on_click=registrar_compra,
-                                                        bgcolor="#67E8F9",
-                                                        color=ft.Colors.BLACK,
-                                                        style=ft.ButtonStyle(
-                                                            shape=ft.RoundedRectangleBorder(radius=18),
-                                                            padding=ft.Padding(24, 18, 24, 18),
-                                                        ),
                                                     )
                                                 ],
                                                 spacing=14,

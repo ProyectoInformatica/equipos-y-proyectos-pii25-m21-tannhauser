@@ -4,6 +4,7 @@ import time
 from controllers.sensor_controller import SensorController
 from models.session_manager import get_current_user
 from models.session_manager import get_panel_route_for_current_user
+from utils.ui_premium import danger_button, primary_button, secondary_button
 
 
 class SensoresLuzView(ft.View):
@@ -74,41 +75,37 @@ class SensoresLuzView(ft.View):
         )
         
         # Botones para iniciar/detener simulación
-        self.btn_iniciar = ft.ElevatedButton(
+        self.btn_iniciar = primary_button(
             "Iniciar Simulación",
             icon=ft.Icons.PLAY_ARROW,
-            bgcolor=ft.Colors.CYAN_400,
             on_click=self.iniciar_simulacion,
         )
-        self.btn_detener = ft.ElevatedButton(
+        self.btn_detener = danger_button(
             "Detener Simulación",
             icon=ft.Icons.STOP,
-            bgcolor=ft.Colors.RED_700,
             on_click=self.detener_simulacion,
             disabled=True,
         )
         botones = ft.Row(
             controls=[
-                ft.ElevatedButton(
+                primary_button(
                     "Encender Luz",
                     icon=ft.Icons.LIGHTBULB,
-                    bgcolor=ft.Colors.LIGHT_GREEN_400,
                     on_click=self.encender_luz,
                 ),
-                ft.ElevatedButton(
+                danger_button(
                     "Apagar Luz",
                     icon=ft.Icons.LIGHTBULB_OUTLINE,
-                    bgcolor=ft.Colors.RED_400,
                     on_click=self.apagar_luz,
                 ),
                 self.btn_iniciar,
                 self.btn_detener,
-                ft.ElevatedButton(
+                secondary_button(
                     "Refrescar",
                     icon=ft.Icons.REFRESH,
                     on_click=self.refrescar_datos,
                 ),
-                ft.TextButton(
+                secondary_button(
                     "Volver al Panel",
                     on_click=lambda e: self.go(get_panel_route_for_current_user()),
                 ),

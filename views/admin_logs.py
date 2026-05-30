@@ -1,6 +1,7 @@
 import flet as ft
 from models.db import get_connection
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import premium_empty_state, primary_button, secondary_button
 
 
 class AdminLogsView(ft.View):
@@ -66,24 +67,14 @@ class AdminLogsView(ft.View):
                                 ),
                                 ft.Row(
                                     [
-                                        ft.ElevatedButton(
+                                        primary_button(
                                             "Refrescar",
                                             icon=ft.Icons.REFRESH_ROUNDED,
-                                            bgcolor="#64D7FF",
-                                            color=ft.Colors.BLACK,
-                                            style=ft.ButtonStyle(
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=lambda e: self.refrescar_logs(),
                                         ),
-                                        ft.OutlinedButton(
+                                        secondary_button(
                                             "Volver al panel",
                                             icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                            style=ft.ButtonStyle(
-                                                color=ft.Colors.WHITE,
-                                                side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=lambda e: self.go(ruta_dashboard_por_rol()),
                                         ),
                                     ],
@@ -263,18 +254,7 @@ class AdminLogsView(ft.View):
 
             if not logs:
                 self.logs_column.controls.append(
-                    ft.Container(
-                        width=1180,
-                        padding=24,
-                        border_radius=20,
-                        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
-                        content=ft.Text(
-                            "No se han encontrado registros para mostrar.",
-                            size=16,
-                            color=ft.Colors.WHITE70,
-                        ),
-                    )
+                    premium_empty_state("No se han encontrado registros para mostrar.", ft.Icons.HISTORY_ROUNDED, width=1180)
                 )
             else:
                 for log in logs:

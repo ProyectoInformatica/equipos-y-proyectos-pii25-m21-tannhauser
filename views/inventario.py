@@ -2,6 +2,7 @@ import flet as ft
 from mysql.connector import Error
 from models.db import get_connection
 from models.session_manager import get_current_user
+from utils.ui_premium import danger_button, premium_empty_state, premium_text_field, primary_button, secondary_button
 
 
 def InventarioView(page: ft.Page, go, editable: bool = False):
@@ -26,9 +27,9 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
 
     productos_column = ft.Column(spacing=16)
 
-    nombre_input = ft.TextField(label="Nombre", border_radius=14)
-    sku_input = ft.TextField(label="SKU", border_radius=14)
-    cantidad_input = ft.TextField(label="Cantidad", border_radius=14)
+    nombre_input = premium_text_field(ft.TextField(label="Nombre", border_radius=14))
+    sku_input = premium_text_field(ft.TextField(label="SKU", border_radius=14))
+    cantidad_input = premium_text_field(ft.TextField(label="Cantidad", border_radius=14))
     precio_input = ft.TextField(label="Precio (€)", border_radius=14)
     is_active_switch = ft.Switch(label="Producto activo", value=True)
 
@@ -130,12 +131,10 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
                 ),
             ),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialog(dialog)),
-                ft.ElevatedButton(
+                secondary_button("Cancelar", on_click=lambda e: cerrar_dialog(dialog)),
+                primary_button(
                     "Guardar",
                     on_click=lambda e: guardar_producto(dialog),
-                    bgcolor="#67E8F9",
-                    color=ft.Colors.BLACK,
                 ),
             ],
         )
@@ -265,25 +264,15 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
         acciones = []
         if editable:
             acciones = [
-                ft.OutlinedButton(
+                secondary_button(
                     "Editar",
                     icon=ft.Icons.EDIT_ROUNDED,
                     on_click=lambda e, p=producto: cargar_en_formulario(p),
-                    style=ft.ButtonStyle(
-                        color=ft.Colors.WHITE,
-                        side=ft.BorderSide(1, ft.Colors.with_opacity(0.18, ft.Colors.WHITE)),
-                        shape=ft.RoundedRectangleBorder(radius=14),
-                    ),
                 ),
-                ft.ElevatedButton(
+                primary_button(
                     "Desactivar" if activo else "Activar",
                     icon=ft.Icons.TOGGLE_OFF_ROUNDED if activo else ft.Icons.TOGGLE_ON_ROUNDED,
                     on_click=lambda e, pid=producto["id"], a=not activo: cambiar_estado(pid, a),
-                    bgcolor="#67E8F9",
-                    color=ft.Colors.BLACK,
-                    style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=14),
-                    ),
                 ),
             ]
 
@@ -475,27 +464,7 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
                 productos_column.controls.append(tarjeta_producto(producto))
         else:
             productos_column.controls.append(
-                ft.Container(
-                    padding=30,
-                    border_radius=22,
-                    bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
-                    content=ft.Column(
-                        [
-                            ft.Icon(
-                                ft.Icons.SEARCH_OFF_ROUNDED,
-                                color=ft.Colors.WHITE60,
-                                size=40,
-                            ),
-                            ft.Text(
-                                "No se han encontrado productos.",
-                                size=16,
-                                color=ft.Colors.WHITE70,
-                            ),
-                        ],
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        spacing=10,
-                    ),
-                )
+                premium_empty_state("No se han encontrado productos.", ft.Icons.SEARCH_OFF_ROUNDED, width=1180)
             )
 
         page.update()
@@ -505,26 +474,16 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
     acciones_superiores = ft.Row(
         [
             busqueda,
-            ft.ElevatedButton(
+            primary_button(
                 "Nuevo producto",
                 icon=ft.Icons.ADD_ROUNDED,
                 on_click=lambda e: cargar_en_formulario(None),
-                bgcolor="#67E8F9",
-                color=ft.Colors.BLACK,
-                style=ft.ButtonStyle(
-                    shape=ft.RoundedRectangleBorder(radius=18),
-                ),
                 visible=editable,
             ),
-            ft.OutlinedButton(
+            secondary_button(
                 "Volver",
                 icon=ft.Icons.ARROW_BACK_ROUNDED,
                 on_click=lambda e: go(ruta_volver()),
-                style=ft.ButtonStyle(
-                    color=ft.Colors.WHITE,
-                    side=ft.BorderSide(1, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                    shape=ft.RoundedRectangleBorder(radius=18),
-                ),
             ),
         ],
         spacing=14,

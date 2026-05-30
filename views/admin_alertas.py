@@ -2,6 +2,7 @@ import flet as ft
 from controllers.alerta_controller import AlertaController
 from models.session_manager import get_current_user
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import premium_empty_state, primary_button, secondary_button
 
 
 def AdminAlertasView(page: ft.Page, go):
@@ -55,28 +56,18 @@ def AdminAlertasView(page: ft.Page, go):
         )
 
         acciones = [
-            ft.OutlinedButton(
+            secondary_button(
                 "Ir al sensor",
                 icon=ft.Icons.ARROW_FORWARD_ROUNDED,
-                style=ft.ButtonStyle(
-                    color=ft.Colors.WHITE,
-                    side=ft.BorderSide(1.0, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                    shape=ft.RoundedRectangleBorder(radius=14),
-                ),
                 on_click=lambda e: ir_sensor(a),
             )
         ]
 
         if activa:
             acciones.append(
-                ft.ElevatedButton(
+                primary_button(
                     "Resolver",
                     icon=ft.Icons.CHECK_CIRCLE_ROUNDED,
-                    bgcolor="#64D7FF",
-                    color=ft.Colors.BLACK,
-                    style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=14),
-                    ),
                     on_click=lambda e: resolver_alerta(a.get("id")),
                 )
             )
@@ -160,7 +151,7 @@ def AdminAlertasView(page: ft.Page, go):
 
         if not activas:
             alertas_activas_column.controls.append(
-                ft.Text("No hay alertas activas.", color=ft.Colors.WHITE70)
+                premium_empty_state("No hay alertas activas.", ft.Icons.NOTIFICATIONS_NONE_ROUNDED, width=1180)
             )
         else:
             for a in activas:
@@ -168,7 +159,7 @@ def AdminAlertasView(page: ft.Page, go):
 
         if not historial:
             historial_column.controls.append(
-                ft.Text("No hay historial de alertas resueltas.", color=ft.Colors.WHITE70)
+                premium_empty_state("No hay historial de alertas resueltas.", ft.Icons.HISTORY_ROUNDED, width=1180)
             )
         else:
             for a in historial:
@@ -214,24 +205,14 @@ def AdminAlertasView(page: ft.Page, go):
                             ),
                             ft.Row(
                                 [
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Refrescar",
                                         icon=ft.Icons.REFRESH_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: refrescar(),
                                     ),
-                                    ft.OutlinedButton(
+                                    secondary_button(
                                         "Volver al panel",
                                         icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: go(ruta_dashboard_por_rol()),
                                     ),
                                 ],

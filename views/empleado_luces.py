@@ -1,5 +1,6 @@
 import flet as ft
 from controllers.luces_controller import LucesController
+from utils.ui_premium import primary_button, secondary_button
 
 
 def EmpleadoLucesView(page: ft.Page, go):
@@ -129,14 +130,9 @@ def EmpleadoLucesView(page: ft.Page, go):
                     ),
                     ft.Row(
                         [
-                            ft.ElevatedButton(
+                            primary_button(
                                 "Guardar cambios",
                                 icon=ft.Icons.SAVE_ROUNDED,
-                                bgcolor="#64D7FF",
-                                color=ft.Colors.BLACK,
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=16),
-                                ),
                                 on_click=guardar_luz,
                             )
                         ],
@@ -221,24 +217,14 @@ def EmpleadoLucesView(page: ft.Page, go):
                             ),
                             ft.Row(
                                 [
-                                    ft.OutlinedButton(
+                                    secondary_button(
                                         "Volver al panel",
                                         icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: go("/panel_empleado"),
                                     ),
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Refrescar",
                                         icon=ft.Icons.REFRESH_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: refrescar_luces(),
                                     ),
                                 ],

@@ -1,5 +1,6 @@
 import flet as ft
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import primary_button, secondary_button
 
 
 def AdminCamaraView(page: ft.Page, go):
@@ -86,14 +87,9 @@ def AdminCamaraView(page: ft.Page, go):
                                 ],
                                 spacing=6,
                             ),
-                            ft.OutlinedButton(
+                            secondary_button(
                                 "Volver al panel",
                                 icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE,
-                                    side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                    shape=ft.RoundedRectangleBorder(radius=16),
-                                ),
                                 on_click=lambda e: go(ruta_dashboard_por_rol()),
                             ),
                         ],
@@ -119,14 +115,9 @@ def AdminCamaraView(page: ft.Page, go):
                             ft.Row(
                                 [
                                     stream_url,
-                                    ft.OutlinedButton(
+                                    secondary_button(
                                         "Copiar stream",
                                         icon=ft.Icons.CONTENT_COPY_ROUNDED,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            side=ft.BorderSide(1.0, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                                            shape=ft.RoundedRectangleBorder(radius=14),
-                                        ),
                                         on_click=copiar_stream,
                                     ),
                                 ],
@@ -136,24 +127,14 @@ def AdminCamaraView(page: ft.Page, go):
                             ft.Row(
                                 [
                                     snapshot_url,
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Cargar vista",
                                         icon=ft.Icons.REFRESH_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=14),
-                                        ),
                                         on_click=cargar_snapshot,
                                     ),
-                                    ft.OutlinedButton(
+                                    secondary_button(
                                         "Copiar captura",
                                         icon=ft.Icons.CONTENT_COPY_ROUNDED,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            side=ft.BorderSide(1.0, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                                            shape=ft.RoundedRectangleBorder(radius=14),
-                                        ),
                                         on_click=copiar_snapshot,
                                     ),
                                 ],

@@ -1,6 +1,7 @@
 import flet as ft
 from controllers.sensor_controller import SensorController
 from utils.navigation import ruta_dashboard_por_rol
+from utils.ui_premium import premium_empty_state, primary_button, secondary_button
 
 
 def AdminMapaSensoresView(page: ft.Page, go):
@@ -16,7 +17,7 @@ def AdminMapaSensoresView(page: ft.Page, go):
 
         if not datos:
             sensores_column.controls.append(
-                ft.Text("No hay estados de sensores disponibles.", color=ft.Colors.WHITE70)
+                premium_empty_state("No hay estados de sensores disponibles.", ft.Icons.SENSORS_OFF_ROUNDED, width=1180)
             )
         else:
             for codigo, row in datos.items():
@@ -90,24 +91,14 @@ def AdminMapaSensoresView(page: ft.Page, go):
                             ),
                             ft.Row(
                                 [
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Refrescar",
                                         icon=ft.Icons.REFRESH_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: refrescar(),
                                     ),
-                                    ft.OutlinedButton(
+                                    secondary_button(
                                         "Volver al panel",
                                         icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                        style=ft.ButtonStyle(
-                                            color=ft.Colors.WHITE,
-                                            side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=lambda e: go(ruta_dashboard_por_rol()),
                                     ),
                                 ],

@@ -2,6 +2,7 @@ import flet as ft
 from controllers.auth_controller import AuthController
 from models.user_manager import UserManager
 from models.session_manager import get_current_user
+from utils.ui_premium import danger_button, premium_empty_state, primary_button, secondary_button
 
 
 class AdminUsuariosView(ft.View):
@@ -187,15 +188,10 @@ class AdminUsuariosView(ft.View):
                                     color=ft.Colors.WHITE,
                                 ),
                             ),
-                            ft.OutlinedButton(
+                            danger_button(
                                 "Dar de baja",
                                 icon=ft.Icons.PERSON_REMOVE_ROUNDED,
                                 disabled=not puede_dar_baja,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.RED_300,
-                                    side=ft.BorderSide(1, ft.Colors.with_opacity(0.25, ft.Colors.RED_300)),
-                                    shape=ft.RoundedRectangleBorder(radius=14),
-                                ),
                                 on_click=lambda e, correo=user.get("email"): self._dar_baja_usuario(correo),
                             ),
                         ],
@@ -221,18 +217,7 @@ class AdminUsuariosView(ft.View):
 
         if not usuarios:
             self.users_column.controls.append(
-                ft.Container(
-                    width=1180,
-                    padding=24,
-                    border_radius=20,
-                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
-                    content=ft.Text(
-                        "No se han encontrado usuarios.",
-                        size=16,
-                        color=ft.Colors.WHITE70,
-                    ),
-                )
+                premium_empty_state("No se han encontrado usuarios.", ft.Icons.PERSON_SEARCH_ROUNDED, width=1180)
             )
         else:
             for user in usuarios:
@@ -286,14 +271,9 @@ class AdminUsuariosView(ft.View):
                                     ],
                                     spacing=6,
                                 ),
-                                ft.OutlinedButton(
+                                secondary_button(
                                     "Volver",
                                     icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                    style=ft.ButtonStyle(
-                                        color=ft.Colors.WHITE,
-                                        side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                        shape=ft.RoundedRectangleBorder(radius=16),
-                                    ),
                                     on_click=lambda e: self.go("/panel_super" if self.rol_actual == "superusuario" else "/panel_admin"),
                                 ),
                             ],
@@ -333,14 +313,9 @@ class AdminUsuariosView(ft.View):
                                 ft.Row(
                                     [
                                         self.rol_dropdown,
-                                        ft.ElevatedButton(
+                                        primary_button(
                                             "Crear usuario",
                                             icon=ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
-                                            bgcolor="#64D7FF",
-                                            color=ft.Colors.BLACK,
-                                            style=ft.ButtonStyle(
-                                                shape=ft.RoundedRectangleBorder(radius=16),
-                                            ),
                                             on_click=self._crear_usuario,
                                         ),
                                     ],

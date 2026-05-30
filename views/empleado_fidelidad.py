@@ -1,5 +1,6 @@
 import flet as ft
 from controllers.caja_fidelidad_controller import CajaFidelidadController
+from utils.ui_premium import primary_button, secondary_button
 
 
 def EmpleadoFidelidadView(page: ft.Page, go):
@@ -187,14 +188,9 @@ def EmpleadoFidelidadView(page: ft.Page, go):
                                 ],
                                 spacing=6,
                             ),
-                            ft.OutlinedButton(
+                            secondary_button(
                                 "Volver al panel",
                                 icon=ft.Icons.ARROW_BACK_ROUNDED,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE,
-                                    side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                    shape=ft.RoundedRectangleBorder(radius=16),
-                                ),
                                 on_click=lambda e: go("/panel_empleado"),
                             ),
                         ],
@@ -220,14 +216,9 @@ def EmpleadoFidelidadView(page: ft.Page, go):
                             ft.Row(
                                 [
                                     qr_input,
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Validar QR",
                                         icon=ft.Icons.VERIFIED_USER_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=validar_qr,
                                     ),
                                 ],
@@ -264,14 +255,9 @@ def EmpleadoFidelidadView(page: ft.Page, go):
                                 [
                                     importe_input,
                                     referencia_input,
-                                    ft.ElevatedButton(
+                                    primary_button(
                                         "Registrar y sumar puntos",
                                         icon=ft.Icons.ADD_CARD_ROUNDED,
-                                        bgcolor="#64D7FF",
-                                        color=ft.Colors.BLACK,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                        ),
                                         on_click=registrar_compra,
                                     ),
                                 ],
