@@ -18,6 +18,14 @@ def PanelUsuarioView(page: ft.Page, go):
     loyalty = FidelidadController()
     user_manager = UserManager()
 
+    def obtener_iniciales(texto: str) -> str:
+        partes = [p for p in (texto or "").strip().split() if p]
+        if len(partes) >= 2:
+            return (partes[0][0] + partes[1][0]).upper()
+        if len(partes) == 1:
+            return partes[0][:2].upper()
+        return "US"
+
     user_id = usuario.get("id")
     nombre = usuario.get("nombre", "Cliente")
     email = usuario.get("email", "cliente@tannhauser.com")
@@ -78,9 +86,10 @@ def PanelUsuarioView(page: ft.Page, go):
         return ft.CircleAvatar(
             radius=radius,
             bgcolor=ft.Colors.with_opacity(0.15, ft.Colors.CYAN_300),
-            content=ft.Icon(
-                ft.Icons.PERSON_ROUNDED,
-                size=max(26, int(radius * 0.95)),
+            content=ft.Text(
+                obtener_iniciales(nombre),
+                size=max(20, int(radius * 0.72)),
+                weight=ft.FontWeight.BOLD,
                 color="#9CEBFF",
             ),
         )

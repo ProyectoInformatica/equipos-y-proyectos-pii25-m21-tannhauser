@@ -136,7 +136,15 @@ def ComentariosView(page: ft.Page, go):
             size=size,
         )
 
-    def avatar_review(profile_image, size=56):
+    def avatar_review(profile_image, nombre, size=56):
+        def obtener_iniciales(texto: str) -> str:
+            partes = [p for p in (texto or "").strip().split() if p]
+            if len(partes) >= 2:
+                return (partes[0][0] + partes[1][0]).upper()
+            if len(partes) == 1:
+                return partes[0][:2].upper()
+            return "US"
+
         if profile_image:
             return ft.Container(
                 width=size,
@@ -151,10 +159,11 @@ def ComentariosView(page: ft.Page, go):
         return ft.CircleAvatar(
             radius=size / 2,
             bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.CYAN_300),
-            content=ft.Icon(
-                ft.Icons.PERSON_ROUNDED,
+            content=ft.Text(
+                obtener_iniciales(nombre),
+                size=max(16, int(size * 0.36)),
+                weight=ft.FontWeight.BOLD,
                 color="#9CEBFF",
-                size=size * 0.42,
             ),
         )
 
@@ -494,7 +503,7 @@ def ComentariosView(page: ft.Page, go):
                 [
                     ft.Row(
                         [
-                            avatar_review(review.get("profile_image"), 56),
+                            avatar_review(review.get("profile_image"), review.get("nombre", "Usuario"), 56),
                             ft.Column(
                                 [
                                     ft.Text(

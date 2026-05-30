@@ -9,6 +9,14 @@ def PerfilView(page: ft.Page, go):
     user_id = usuario.get("id")
     controller = ProfileController()
 
+    def obtener_iniciales(texto: str) -> str:
+        partes = [p for p in (texto or "").strip().split() if p]
+        if len(partes) >= 2:
+            return (partes[0][0] + partes[1][0]).upper()
+        if len(partes) == 1:
+            return partes[0][:2].upper()
+        return "US"
+
     user_data = controller.obtener_usuario(user_id) if user_id else None
 
     nombre = (user_data or {}).get("nombre", "Usuario")
@@ -36,7 +44,12 @@ def PerfilView(page: ft.Page, go):
             avatar_container.content = ft.CircleAvatar(
                 radius=63,
                 bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.CYAN_300),
-                content=ft.Icon(ft.Icons.PERSON_ROUNDED, size=52, color="#9CEBFF"),
+                content=ft.Text(
+                    obtener_iniciales(nombre),
+                    size=32,
+                    weight=ft.FontWeight.BOLD,
+                    color="#9CEBFF",
+                ),
             )
 
     render_avatar(profile_image)

@@ -1,8 +1,28 @@
+import os
+import shutil
+import time
 from typing import List, Dict, Optional, Tuple
 from models.db import get_connection
 
 
 class UserManager:
+    def _guardar_imagen_perfil(self, source_path: str) -> Optional[str]:
+        if not source_path or not os.path.exists(source_path):
+            return None
+
+        carpeta = os.path.join("assets", "profile_images")
+        os.makedirs(carpeta, exist_ok=True)
+
+        _, ext = os.path.splitext(source_path)
+        if not ext:
+            ext = ".png"
+
+        filename = f"profile_{int(time.time() * 1000)}{ext}"
+        destino = os.path.join(carpeta, filename)
+        shutil.copy(source_path, destino)
+
+        return f"profile_images/{filename}".replace("\\", "/")
+
     def listar(self) -> List[Dict]:
         conn = get_connection()
         if not conn:
@@ -13,17 +33,16 @@ class UserManager:
             SELECT
                 u.id,
                 u.role_id,
-                LOWER(r.code) AS rol_code,
                 LOWER(r.name) AS rol,
                 u.nombre,
                 u.email,
                 u.password_hash,
+                u.profile_image,
                 u.is_active,
                 u.created_at,
                 u.updated_at,
                 u.deactivated_at,
-                u.last_login_at,
-                u.profile_image
+                u.last_login_at
             FROM users u
             JOIN roles r ON u.role_id = r.id
             ORDER BY u.id
@@ -48,17 +67,16 @@ class UserManager:
             SELECT
                 u.id,
                 u.role_id,
-                LOWER(r.code) AS rol_code,
                 LOWER(r.name) AS rol,
                 u.nombre,
                 u.email,
                 u.password_hash,
+                u.profile_image,
                 u.is_active,
                 u.created_at,
                 u.updated_at,
                 u.deactivated_at,
-                u.last_login_at,
-                u.profile_image
+                u.last_login_at
             FROM users u
             JOIN roles r ON u.role_id = r.id
             WHERE LOWER(u.email) = %s
@@ -75,23 +93,11 @@ class UserManager:
                 (user["id"],)
             )
             conn.commit()
-            user["rol"] = (user["rol"] or "").strip().lower()
-            user["rol_code"] = (user["rol_code"] or "").strip().lower()
+            user["rol"] = user["rol"].strip().lower()
 
         cursor.close()
         conn.close()
         return user
-
-    def _roles_permitidos_para_actor(self, actor_rol: str) -> List[str]:
-        actor_rol = (actor_rol or "").strip().lower()
-
-        if actor_rol == "superusuario":
-            return ["cliente", "empleado", "administrador"]
-
-        if actor_rol == "administrador":
-            return ["cliente", "empleado"]
-
-        return ["cliente"]
 
     def registrar(
         self,
@@ -99,21 +105,15 @@ class UserManager:
         email: str,
         password: str,
         rol: str = "cliente",
-        actor_rol: str = "cliente",
-        profile_image: Optional[str] = None,
+        profile_image_path: str = None
     ) -> Tuple[bool, str]:
         nombre = nombre.strip()
         email = email.lower().strip()
         password = password.strip()
         rol = rol.strip().lower()
-        actor_rol = actor_rol.strip().lower()
 
         if not nombre or not email or not password or not rol:
             return False, "Completa todos los campos."
-
-        roles_permitidos = self._roles_permitidos_para_actor(actor_rol)
-        if rol not in roles_permitidos:
-            return False, "No tienes permisos para crear ese tipo de usuario."
 
         conn = get_connection()
         if not conn:
@@ -141,18 +141,20 @@ class UserManager:
             conn.close()
             return False, f"Rol no válido: {rol}"
 
+        profile_image = self._guardar_imagen_perfil(profile_image_path)
+
         query = """
             INSERT INTO users (
                 role_id,
                 nombre,
                 email,
                 password_hash,
+                profile_image,
                 is_active,
                 created_at,
-                updated_at,
-                profile_image
+                updated_at
             )
-            VALUES (%s, %s, %s, SHA2(%s, 256), 1, NOW(), NOW(), %s)
+            VALUES (%s, %s, %s, SHA2(%s, 256), %s, 1, NOW(), NOW())
         """
         cursor.execute(query, (role_row["id"], nombre, email, password, profile_image))
         conn.commit()
@@ -173,16 +175,15 @@ class UserManager:
             SELECT
                 u.id,
                 u.role_id,
-                LOWER(r.code) AS rol_code,
                 LOWER(r.name) AS rol,
                 u.nombre,
                 u.email,
+                u.profile_image,
                 u.is_active,
                 u.created_at,
                 u.updated_at,
                 u.deactivated_at,
-                u.last_login_at,
-                u.profile_image
+                u.last_login_at
             FROM users u
             JOIN roles r ON u.role_id = r.id
             WHERE LOWER(u.email) = %s
@@ -207,16 +208,15 @@ class UserManager:
             SELECT
                 u.id,
                 u.role_id,
-                LOWER(r.code) AS rol_code,
                 LOWER(r.name) AS rol,
                 u.nombre,
                 u.email,
+                u.profile_image,
                 u.is_active,
                 u.created_at,
                 u.updated_at,
                 u.deactivated_at,
-                u.last_login_at,
-                u.profile_image
+                u.last_login_at
             FROM users u
             JOIN roles r ON u.role_id = r.id
             WHERE LOWER(u.nombre) LIKE %s

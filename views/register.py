@@ -1,256 +1,276 @@
-import os
-import shutil
-import time
 import flet as ft
 from controllers.auth_controller import AuthController
-from models.session_manager import set_current_user
 
 
 def RegistroView(page: ft.Page, go):
     auth = AuthController()
-    foto_perfil = {"ruta": None}
+    selected_photo = {"path": None}
 
-    def asegurar_directorio_perfiles():
-        os.makedirs("assets/profile_pics", exist_ok=True)
+    def obtener_iniciales(texto: str) -> str:
+        partes = [p for p in (texto or "").strip().split() if p]
+        if len(partes) >= 2:
+            return (partes[0][0] + partes[1][0]).upper()
+        if len(partes) == 1:
+            return partes[0][:2].upper()
+        return "US"
 
-    def guardar_imagen_local(source_path: str):
-        if not source_path:
-            return None
+    avatar_preview = ft.Container()
 
-        asegurar_directorio_perfiles()
-
-        _, ext = os.path.splitext(source_path)
-        if not ext:
-            ext = ".png"
-
-        nombre_archivo = f"profile_{int(time.time() * 1000)}{ext}"
-        destino = os.path.join("assets", "profile_pics", nombre_archivo)
-        shutil.copy(source_path, destino)
-        return destino.replace("\\", "/")
-
-    avatar = ft.CircleAvatar(
-        radius=46,
-        bgcolor=ft.Colors.with_opacity(0.14, ft.Colors.CYAN_300),
-        content=ft.Icon(ft.Icons.PERSON_ROUNDED, size=42, color="#9CEBFF"),
-    )
-
-    texto_foto = ft.Text(
-        "Sin foto seleccionada",
-        size=12,
-        color=ft.Colors.WHITE60,
-        text_align=ft.TextAlign.CENTER,
-    )
-
-    nombre = ft.TextField(
-        hint_text="Nombre completo",
-        prefix_icon=ft.Icons.PERSON_ROUNDED,
-        border_radius=18,
-        filled=True,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border_color=ft.Colors.with_opacity(0.18, ft.Colors.WHITE),
-        color=ft.Colors.WHITE,
-        hint_style=ft.TextStyle(color=ft.Colors.WHITE54),
-        width=420,
-    )
-
-    email = ft.TextField(
-        hint_text="Correo electrónico",
-        prefix_icon=ft.Icons.MAIL_ROUNDED,
-        border_radius=18,
-        filled=True,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border_color=ft.Colors.with_opacity(0.18, ft.Colors.WHITE),
-        color=ft.Colors.WHITE,
-        hint_style=ft.TextStyle(color=ft.Colors.WHITE54),
-        width=420,
-    )
-
-    password = ft.TextField(
-        hint_text="Contraseña",
-        prefix_icon=ft.Icons.LOCK_ROUNDED,
-        password=True,
-        can_reveal_password=True,
-        border_radius=18,
-        filled=True,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border_color=ft.Colors.with_opacity(0.18, ft.Colors.WHITE),
-        color=ft.Colors.WHITE,
-        hint_style=ft.TextStyle(color=ft.Colors.WHITE54),
-        width=420,
-    )
-
-    password2 = ft.TextField(
-        hint_text="Repetir contraseña",
-        prefix_icon=ft.Icons.LOCK_OUTLINE_ROUNDED,
-        password=True,
-        can_reveal_password=True,
-        border_radius=18,
-        filled=True,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border_color=ft.Colors.with_opacity(0.18, ft.Colors.WHITE),
-        color=ft.Colors.WHITE,
-        hint_style=ft.TextStyle(color=ft.Colors.WHITE54),
-        width=420,
-    )
-
-    mensaje = ft.Text("", color=ft.Colors.RED_300, size=13)
-
-    def mostrar_mensaje(texto, color=ft.Colors.BLUE_600):
-        page.snack_bar = ft.SnackBar(ft.Text(texto), bgcolor=color)
-        page.snack_bar.open = True
-        page.update()
+    def render_avatar_preview():
+        if selected_photo["path"]:
+            avatar_preview.content = ft.Container(
+                width=112,
+                height=112,
+                border_radius=56,
+                clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                content=ft.Image(
+                    src=selected_photo["path"],
+                    fit=ft.ImageFit.COVER,
+                ),
+            )
+        else:
+            avatar_preview.content = ft.CircleAvatar(
+                radius=56,
+                bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.CYAN_300),
+                content=ft.Text(
+                    obtener_iniciales(nombre.value),
+                    size=30,
+                    weight=ft.FontWeight.BOLD,
+                    color="#9CEBFF",
+                ),
+            )
 
     def on_file_result(e: ft.FilePickerResultEvent):
-        if e.files and len(e.files) > 0:
-            ruta_local = e.files[0].path
-            ruta_guardada = guardar_imagen_local(ruta_local)
-
-            if ruta_guardada:
-                foto_perfil["ruta"] = ruta_guardada
-                avatar.foreground_image_src = ruta_guardada
-                avatar.content = None
-                texto_foto.value = "Foto seleccionada correctamente"
-                page.update()
+        if e.files:
+            selected_photo["path"] = e.files[0].path
+            render_avatar_preview()
+            page.update()
 
     file_picker = ft.FilePicker(on_result=on_file_result)
     page.overlay.append(file_picker)
 
+    nombre = ft.TextField(
+        label="Nombre completo",
+        prefix_icon=ft.Icons.PERSON,
+        border_radius=16,
+        border_color=ft.Colors.CYAN_300,
+        focused_border_color=ft.Colors.LIGHT_BLUE_400,
+        width=360,
+        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+        color=ft.Colors.WHITE,
+        on_change=lambda e: (render_avatar_preview(), page.update()) if not selected_photo["path"] else None,
+    )
+
+    email = ft.TextField(
+        label="Correo electrónico",
+        prefix_icon=ft.Icons.EMAIL,
+        border_radius=16,
+        border_color=ft.Colors.CYAN_300,
+        focused_border_color=ft.Colors.LIGHT_BLUE_400,
+        width=360,
+        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+        color=ft.Colors.WHITE,
+    )
+
+    password = ft.TextField(
+        label="Contraseña",
+        prefix_icon=ft.Icons.LOCK,
+        password=True,
+        can_reveal_password=True,
+        border_radius=16,
+        border_color=ft.Colors.CYAN_300,
+        focused_border_color=ft.Colors.LIGHT_BLUE_400,
+        width=360,
+        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+        color=ft.Colors.WHITE,
+    )
+
+    password2 = ft.TextField(
+        label="Repetir contraseña",
+        prefix_icon=ft.Icons.LOCK,
+        password=True,
+        can_reveal_password=True,
+        border_radius=16,
+        border_color=ft.Colors.CYAN_300,
+        focused_border_color=ft.Colors.LIGHT_BLUE_400,
+        width=360,
+        bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+        color=ft.Colors.WHITE,
+    )
+
+    mensaje = ft.Text("", color=ft.Colors.RED_300, size=14)
+
+    render_avatar_preview()
+
+    def mostrar_snack(texto, ok=True):
+        page.snack_bar = ft.SnackBar(
+            ft.Text(texto),
+            bgcolor=ft.Colors.GREEN_600 if ok else ft.Colors.RED_600,
+        )
+        page.snack_bar.open = True
+        page.update()
+
     def registrar(e):
         mensaje.value = ""
 
-        nombre_val = (nombre.value or "").strip()
-        email_val = (email.value or "").strip().lower()
-        pass_val = password.value or ""
-        pass2_val = password2.value or ""
-
-        if not nombre_val or not email_val or not pass_val or not pass2_val:
-            mensaje.value = "Completa todos los campos obligatorios."
+        if not nombre.value or not email.value or not password.value or not password2.value:
+            mensaje.value = "Completa todos los campos."
             page.update()
             return
 
-        if pass_val != pass2_val:
+        if password.value != password2.value:
             mensaje.value = "Las contraseñas no coinciden."
             page.update()
             return
 
-        if len(pass_val) < 6:
-            mensaje.value = "La contraseña debe tener al menos 6 caracteres."
-            page.update()
-            return
-
         ok, msg = auth.register(
-            nombre_val,
-            email_val,
-            pass_val,
-            foto_perfil["ruta"],
+            nombre.value.strip(),
+            email.value.strip(),
+            password.value.strip(),
+            profile_image_path=selected_photo["path"],
         )
 
         if ok:
-            user = auth.manager.obtener_por_email(email_val)
-            if user:
-                set_current_user(user)
-                mostrar_mensaje("Cuenta creada correctamente.", ft.Colors.GREEN_600)
-                go("/panel_usuario")
-            else:
-                mostrar_mensaje("Cuenta creada, pero no se pudo iniciar sesión automáticamente.", ft.Colors.AMBER_600)
-                go("/login")
-        else:
-            mensaje.value = msg
+            nombre.value = ""
+            email.value = ""
+            password.value = ""
+            password2.value = ""
+            selected_photo["path"] = None
+            render_avatar_preview()
+            mensaje.value = ""
+            mostrar_snack("Cuenta creada correctamente. Ahora inicia sesión.", ok=True)
+            go("/login")
+            return
 
+        mensaje.value = msg
         page.update()
 
-    lado_izquierdo = ft.Container(
-        expand=True,
-        padding=ft.Padding(46, 40, 46, 40),
-        content=ft.Column(
+    topbar = ft.Container(
+        width=1180,
+        padding=ft.Padding(24, 18, 24, 18),
+        border_radius=28,
+        bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
+        border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+        content=ft.Row(
             [
-                ft.Image(
-                    src="assets/logo_tannhauser.png",
-                    width=240,
-                    fit=ft.ImageFit.CONTAIN,
+                ft.Row(
+                    [
+                        ft.Container(
+                            width=68,
+                            height=68,
+                            border_radius=20,
+                            bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
+                            padding=10,
+                            content=ft.Image(
+                                src="assets/logo_tannhauser.png",
+                                fit=ft.ImageFit.CONTAIN,
+                            ),
+                        ),
+                        ft.Column(
+                            [
+                                ft.Text(
+                                    "Crear cuenta",
+                                    size=30,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=ft.Colors.WHITE,
+                                ),
+                                ft.Text(
+                                    "Regístrate como cliente del supermercado.",
+                                    size=14,
+                                    color=ft.Colors.WHITE70,
+                                ),
+                            ],
+                            spacing=4,
+                        ),
+                    ],
+                    spacing=16,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                ft.Container(height=34),
-                ft.Text(
-                    "Únete a Tannhauser",
-                    size=44,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.WHITE,
-                ),
-                ft.Text(
-                    "Crea tu cuenta para acceder al sistema, consultar sensores, inventario, actividad y toda la operativa del supermercado inteligente.",
-                    size=18,
-                    color=ft.Colors.WHITE70,
-                    width=560,
+                ft.OutlinedButton(
+                    "Volver",
+                    icon=ft.Icons.ARROW_BACK_ROUNDED,
+                    style=ft.ButtonStyle(
+                        color=ft.Colors.WHITE,
+                        side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
+                        shape=ft.RoundedRectangleBorder(radius=16),
+                    ),
+                    on_click=lambda e: go("/"),
                 ),
             ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.START,
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
     )
 
-    lado_derecho = ft.Container(
-        width=560,
-        padding=34,
-        border_radius=30,
+    card = ft.Container(
+        width=620,
+        padding=32,
+        border_radius=28,
         bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
         border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
         shadow=ft.BoxShadow(
             spread_radius=0,
-            blur_radius=26,
-            color=ft.Colors.with_opacity(0.14, ft.Colors.BLACK),
+            blur_radius=22,
+            color=ft.Colors.with_opacity(0.12, ft.Colors.BLACK),
             offset=ft.Offset(0, 10),
         ),
         content=ft.Column(
             [
                 ft.Text(
-                    "Crear cuenta",
-                    size=34,
+                    "Nueva cuenta de cliente",
+                    size=28,
                     weight=ft.FontWeight.BOLD,
                     color=ft.Colors.WHITE,
                     text_align=ft.TextAlign.CENTER,
                 ),
                 ft.Text(
-                    "Registro con foto de perfil opcional.",
-                    size=15,
+                    "Puedes subir tu foto de perfil. Si no subes ninguna, aparecerán tus iniciales automáticamente.",
+                    size=14,
                     color=ft.Colors.WHITE70,
                     text_align=ft.TextAlign.CENTER,
                 ),
-                ft.Container(height=8),
-                ft.Column(
+                ft.Container(height=6),
+                ft.Row([avatar_preview], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row(
                     [
-                        avatar,
-                        texto_foto,
-                        ft.TextButton(
-                            "Subir foto de perfil",
-                            icon=ft.Icons.UPLOAD_FILE_ROUNDED,
-                            style=ft.ButtonStyle(color="#9CEBFF"),
+                        ft.ElevatedButton(
+                            "Añadir foto de perfil",
+                            icon=ft.Icons.ADD_A_PHOTO_ROUNDED,
+                            bgcolor="#64D7FF",
+                            color=ft.Colors.BLACK,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=16),
+                            ),
                             on_click=lambda e: file_picker.pick_files(
                                 allow_multiple=False,
                                 allowed_extensions=["png", "jpg", "jpeg", "webp"],
                             ),
                         ),
                     ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+                    alignment=ft.MainAxisAlignment.CENTER,
                 ),
-                ft.Container(height=8),
+                ft.Container(height=10),
                 nombre,
                 email,
                 password,
                 password2,
                 mensaje,
                 ft.Container(height=8),
-                ft.ElevatedButton(
-                    "Registrarse",
-                    icon=ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
-                    width=420,
-                    height=52,
-                    bgcolor="#64D7FF",
-                    color=ft.Colors.BLACK,
-                    style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=18),
-                    ),
-                    on_click=registrar,
+                ft.Row(
+                    [
+                        ft.ElevatedButton(
+                            "Crear cuenta",
+                            icon=ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
+                            width=190,
+                            bgcolor="#64D7FF",
+                            color=ft.Colors.BLACK,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=18),
+                            ),
+                            on_click=registrar,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
                 ),
                 ft.Container(height=6),
                 ft.Row(
@@ -258,50 +278,45 @@ def RegistroView(page: ft.Page, go):
                         ft.TextButton(
                             "Ya tengo cuenta",
                             icon=ft.Icons.LOGIN_ROUNDED,
-                            style=ft.ButtonStyle(color=ft.Colors.WHITE70),
                             on_click=lambda e: go("/login"),
                         ),
                         ft.TextButton(
                             "Volver al inicio",
-                            icon=ft.Icons.ARROW_BACK_ROUNDED,
-                            style=ft.ButtonStyle(color=ft.Colors.WHITE70),
+                            icon=ft.Icons.HOME_ROUNDED,
                             on_click=lambda e: go("/"),
                         ),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
             ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=14,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
     )
 
-    fondo = ft.Container(
+    contenido = ft.Container(
         expand=True,
-        padding=32,
+        padding=30,
         gradient=ft.LinearGradient(
             begin=ft.Alignment(-1, -1),
             end=ft.Alignment(1, 1),
-            colors=[
-                "#050A12",
-                "#09172A",
-                "#0B2342",
-                "#0E2F55",
-            ],
+            colors=["#050A12", "#09172A", "#0B2342", "#0E2F55"],
         ),
-        content=ft.Row(
+        content=ft.Column(
             [
-                lado_izquierdo,
-                lado_derecho,
+                topbar,
+                ft.Container(height=26),
+                ft.Row([card], alignment=ft.MainAxisAlignment.CENTER),
             ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=0,
+            scroll=ft.ScrollMode.AUTO,
         ),
     )
 
     return ft.View(
         route="/registro",
-        controls=[fondo],
+        controls=[contenido],
         padding=0,
         spacing=0,
     )
