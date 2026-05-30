@@ -2,6 +2,18 @@ import flet as ft
 from controllers.reviews_controller import ReviewsController
 from models.session_manager import get_current_user
 from models.user_manager import UserManager
+from utils.ui_premium import (
+    primary_button,
+    secondary_button,
+    danger_button,
+    premium_card,
+    premium_page,
+    status_badge,
+    SURFACE,
+    TEXT_MUTED,
+    ACCENT,
+    CHAMPAGNE,
+)
 
 
 def ComentariosView(page: ft.Page, go):
@@ -109,6 +121,20 @@ def ComentariosView(page: ft.Page, go):
         size=13,
         color=ft.Colors.RED_300,
     )
+
+    for campo in (
+        title_input,
+        comment_input,
+        response_dialog_text,
+        nombre_validado_input,
+        email_validado_input,
+        cred_email_input,
+        cred_password_input,
+    ):
+        campo.border_color = ft.Colors.with_opacity(0.18, ft.Colors.WHITE)
+        campo.focused_border_color = ACCENT
+        campo.bgcolor = ft.Colors.with_opacity(0.07, ft.Colors.WHITE)
+        campo.color = ft.Colors.WHITE
 
     def show_message(texto: str, ok: bool = True):
         page.snack_bar = ft.SnackBar(
@@ -296,10 +322,8 @@ def ComentariosView(page: ft.Page, go):
             ),
             actions=[
                 ft.TextButton("Cancelar", on_click=lambda e: page.close(dialog)),
-                ft.ElevatedButton(
+                primary_button(
                     "Validar y publicar",
-                    bgcolor="#67E8F9",
-                    color=ft.Colors.BLACK,
                     on_click=lambda e: validar_y_publicar(dialog),
                 ),
             ],
@@ -363,10 +387,8 @@ def ComentariosView(page: ft.Page, go):
                     "Eliminar respuesta",
                     on_click=lambda e: eliminar_respuesta(review_id, dialog),
                 ),
-                ft.ElevatedButton(
+                primary_button(
                     "Guardar respuesta",
-                    bgcolor="#67E8F9",
-                    color=ft.Colors.BLACK,
                     on_click=lambda e: guardar_respuesta(review_id, dialog),
                 ),
             ],
@@ -468,37 +490,25 @@ def ComentariosView(page: ft.Page, go):
         actions = []
         if can_reply:
             actions.append(
-                ft.OutlinedButton(
+                secondary_button(
                     "Responder",
-                    icon=ft.Icons.REPLY_ROUNDED,
-                    style=ft.ButtonStyle(
-                        color=ft.Colors.WHITE,
-                        side=ft.BorderSide(1, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                        shape=ft.RoundedRectangleBorder(radius=14),
-                    ),
+                    ft.Icons.REPLY_ROUNDED,
                     on_click=lambda e, rid=review["id"], rtext=(response.get("response_text") if response else ""): abrir_dialog_respuesta(rid, rtext),
                 )
             )
 
         if can_delete:
             actions.append(
-                ft.OutlinedButton(
+                danger_button(
                     "Eliminar",
-                    icon=ft.Icons.DELETE_OUTLINE_ROUNDED,
-                    style=ft.ButtonStyle(
-                        color=ft.Colors.RED_300,
-                        side=ft.BorderSide(1, ft.Colors.with_opacity(0.25, ft.Colors.RED_300)),
-                        shape=ft.RoundedRectangleBorder(radius=14),
-                    ),
+                    ft.Icons.DELETE_OUTLINE_ROUNDED,
                     on_click=lambda e, rid=review["id"]: eliminar_review(rid),
                 )
             )
 
-        return ft.Container(
+        return premium_card(
             padding=22,
             border_radius=24,
-            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.10, ft.Colors.WHITE)),
             content=ft.Column(
                 [
                     ft.Row(
@@ -582,10 +592,9 @@ def ComentariosView(page: ft.Page, go):
                 reviews_column.controls.append(build_review_card(review))
         else:
             reviews_column.controls.append(
-                ft.Container(
+                premium_card(
                     padding=30,
                     border_radius=20,
-                    bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
                     content=ft.Column(
                         [
                             ft.Icon(ft.Icons.RATE_REVIEW_ROUNDED, size=42, color=ft.Colors.WHITE60),
@@ -643,7 +652,7 @@ def ComentariosView(page: ft.Page, go):
                 gradient=ft.LinearGradient(
                     begin=ft.Alignment(-1, -1),
                     end=ft.Alignment(1, 1),
-                    colors=["#050A12", "#09172A", "#0B2342", "#0E2F55"],
+                    colors=["#030712", "#06111D", "#0A1C2D", "#12385C"],
                 ),
                 content=ft.Column(
                     [
@@ -666,15 +675,10 @@ def ComentariosView(page: ft.Page, go):
                                     spacing=6,
                                     expand=True,
                                 ),
-                                ft.OutlinedButton(
+                                secondary_button(
                                     "Volver",
-                                    icon=ft.Icons.ARROW_BACK_ROUNDED,
+                                    ft.Icons.ARROW_BACK_ROUNDED,
                                     on_click=lambda e: go(route_back()),
-                                    style=ft.ButtonStyle(
-                                        color=ft.Colors.WHITE,
-                                        side=ft.BorderSide(1, ft.Colors.with_opacity(0.22, ft.Colors.WHITE)),
-                                        shape=ft.RoundedRectangleBorder(radius=18),
-                                    ),
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -683,14 +687,13 @@ def ComentariosView(page: ft.Page, go):
                         ft.Container(height=18),
                         ft.Row(
                             [
-                                ft.Container(
+                                premium_card(
                                     width=350,
                                     padding=24,
                                     border_radius=28,
-                                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                                    border=ft.border.all(1, ft.Colors.with_opacity(0.10, ft.Colors.WHITE)),
                                     content=ft.Column(
                                         [
+                                            status_badge("Experiencia cliente", "gold"),
                                             ft.Text(
                                                 "Valoración media",
                                                 size=18,
@@ -706,12 +709,10 @@ def ComentariosView(page: ft.Page, go):
                                         spacing=10,
                                     ),
                                 ),
-                                ft.Container(
+                                premium_card(
                                     expand=True,
                                     padding=24,
                                     border_radius=28,
-                                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                                    border=ft.border.all(1, ft.Colors.with_opacity(0.10, ft.Colors.WHITE)),
                                     content=ft.Column(
                                         [
                                             ft.Text(
@@ -744,27 +745,17 @@ def ComentariosView(page: ft.Page, go):
                                             comment_input,
                                             ft.Row(
                                                 [
-                                                    ft.ElevatedButton(
+                                                    secondary_button(
                                                         "Añadir fotos",
-                                                        icon=ft.Icons.ADD_A_PHOTO_ROUNDED,
-                                                        bgcolor="#67E8F9",
-                                                        color=ft.Colors.BLACK,
-                                                        style=ft.ButtonStyle(
-                                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                                        ),
+                                                        ft.Icons.ADD_A_PHOTO_ROUNDED,
                                                         on_click=lambda e: file_picker.pick_files(
                                                             allow_multiple=True,
                                                             allowed_extensions=["png", "jpg", "jpeg", "webp"]
                                                         ),
                                                     ),
-                                                    ft.ElevatedButton(
+                                                    primary_button(
                                                         "Publicar reseña",
-                                                        icon=ft.Icons.SEND_ROUNDED,
-                                                        bgcolor="#67E8F9",
-                                                        color=ft.Colors.BLACK,
-                                                        style=ft.ButtonStyle(
-                                                            shape=ft.RoundedRectangleBorder(radius=16),
-                                                        ),
+                                                        ft.Icons.SEND_ROUNDED,
                                                         on_click=publicar_review,
                                                     ),
                                                 ],
@@ -780,11 +771,9 @@ def ComentariosView(page: ft.Page, go):
                             vertical_alignment=ft.CrossAxisAlignment.START,
                         ),
                         ft.Container(height=22),
-                        ft.Container(
+                        premium_card(
                             padding=24,
                             border_radius=28,
-                            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                            border=ft.border.all(1, ft.Colors.with_opacity(0.10, ft.Colors.WHITE)),
                             content=ft.Column(
                                 [
                                     ft.Row(

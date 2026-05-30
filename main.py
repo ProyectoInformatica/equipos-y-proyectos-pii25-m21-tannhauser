@@ -27,6 +27,17 @@ from controllers.alerta_controller import AlertaController
 from views.empleado_sensores import EmpleadoSensoresView
 from views.empleado_luces import EmpleadoLucesView
 from views.empleado_fidelidad import EmpleadoFidelidadView
+from utils.ui_premium import (
+    premium_page,
+    premium_card,
+    primary_button,
+    secondary_button,
+    status_badge,
+    logo_mark,
+    SURFACE,
+    TEXT_MUTED,
+    CHAMPAGNE,
+)
 
 
 def main(page: ft.Page):
@@ -472,36 +483,12 @@ def main(page: ft.Page):
             await asyncio.sleep(2)
 
     def home_view():
-        logo_block = ft.Container(
-            width=86,
-            height=86,
-            border_radius=24,
-            bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
-            padding=12,
-            shadow=ft.BoxShadow(
-                spread_radius=0,
-                blur_radius=18,
-                color=ft.Colors.with_opacity(0.16, ft.Colors.BLACK),
-                offset=ft.Offset(0, 6),
-            ),
-            content=ft.Image(
-                src="logo_tannhauser.png",
-                fit=ft.ImageFit.CONTAIN,
-            ),
-        )
+        logo_block = logo_mark(86)
 
-        topbar = ft.Container(
+        topbar = premium_card(
             width=1180,
             padding=ft.Padding(26, 18, 26, 18),
             border_radius=28,
-            bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
-            shadow=ft.BoxShadow(
-                spread_radius=0,
-                blur_radius=18,
-                color=ft.Colors.with_opacity(0.10, ft.Colors.BLACK),
-                offset=ft.Offset(0, 8),
-            ),
             content=ft.Row(
                 [
                     ft.Row(
@@ -521,30 +508,17 @@ def main(page: ft.Page):
                         [
                             ft.TextButton(
                                 "Valoraciones",
-                                style=ft.ButtonStyle(color=ft.Colors.WHITE70),
+                                style=ft.ButtonStyle(color=TEXT_MUTED),
                                 on_click=lambda e: go("/comentarios"),
                             ),
-                            ft.OutlinedButton(
+                            secondary_button(
                                 "Crear cuenta",
-                                icon=ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE,
-                                    side=ft.BorderSide(
-                                        1.1,
-                                        ft.Colors.with_opacity(0.28, ft.Colors.WHITE),
-                                    ),
-                                    shape=ft.RoundedRectangleBorder(radius=18),
-                                ),
+                                ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
                                 on_click=lambda e: go("/registro"),
                             ),
-                            ft.ElevatedButton(
+                            primary_button(
                                 "Iniciar sesión",
-                                icon=ft.Icons.LOGIN_ROUNDED,
-                                bgcolor="#64D7FF",
-                                color=ft.Colors.BLACK,
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=18),
-                                ),
+                                ft.Icons.LOGIN_ROUNDED,
                                 on_click=lambda e: go("/login"),
                             ),
                         ],
@@ -558,17 +532,7 @@ def main(page: ft.Page):
 
         hero_left = ft.Column(
             [
-                ft.Container(
-                    padding=ft.Padding(14, 8, 14, 8),
-                    border_radius=20,
-                    bgcolor=ft.Colors.with_opacity(0.14, ft.Colors.CYAN_300),
-                    content=ft.Text(
-                        "Supermercado inteligente",
-                        color="#9CEBFF",
-                        size=13,
-                        weight=ft.FontWeight.W_600,
-                    ),
-                ),
+                status_badge("Supermercado inteligente", "gold"),
                 ft.Text(
                     "La nueva forma de gestionar un supermercado conectado.",
                     size=48,
@@ -579,37 +543,20 @@ def main(page: ft.Page):
                 ft.Text(
                     "Controla inventario, usuarios, sensores, actividad y operativa diaria desde una única plataforma visual, moderna y preparada para crecer.",
                     size=17,
-                    color=ft.Colors.WHITE70,
+                    color=TEXT_MUTED,
                     width=640,
                 ),
                 ft.Container(height=6),
                 ft.Row(
                     [
-                        ft.ElevatedButton(
+                        primary_button(
                             "Entrar en la plataforma",
-                            icon=ft.Icons.ARROW_FORWARD_ROUNDED,
-                            height=54,
-                            bgcolor="#64D7FF",
-                            color=ft.Colors.BLACK,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=18),
-                                padding=ft.Padding(24, 0, 24, 0),
-                            ),
+                            ft.Icons.ARROW_FORWARD_ROUNDED,
                             on_click=lambda e: go("/login"),
                         ),
-                        ft.OutlinedButton(
+                        secondary_button(
                             "Ver valoraciones",
-                            icon=ft.Icons.STAR_ROUNDED,
-                            height=54,
-                            style=ft.ButtonStyle(
-                                color=ft.Colors.WHITE,
-                                side=ft.BorderSide(
-                                    1.1,
-                                    ft.Colors.with_opacity(0.28, ft.Colors.WHITE),
-                                ),
-                                shape=ft.RoundedRectangleBorder(radius=18),
-                                padding=ft.Padding(24, 0, 24, 0),
-                            ),
+                            ft.Icons.STAR_ROUNDED,
                             on_click=lambda e: go("/comentarios"),
                         ),
                     ],
@@ -650,13 +597,13 @@ def main(page: ft.Page):
             height=500,
             border_radius=34,
             padding=28,
-            bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.BLACK),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+            bgcolor=SURFACE,
+            border=ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)),
             shadow=ft.BoxShadow(
                 spread_radius=0,
-                blur_radius=24,
-                color=ft.Colors.with_opacity(0.14, ft.Colors.BLACK),
-                offset=ft.Offset(0, 10),
+                blur_radius=34,
+                color=ft.Colors.with_opacity(0.28, ft.Colors.BLACK),
+                offset=ft.Offset(0, 16),
             ),
             content=ft.Column(
                 [
@@ -729,25 +676,15 @@ def main(page: ft.Page):
             text_align=ft.TextAlign.CENTER,
         )
 
-        contenido = ft.Container(
-            expand=True,
-            padding=30,
-            gradient=ft.LinearGradient(
-                begin=ft.Alignment(-1, -1),
-                end=ft.Alignment(1, 1),
-                colors=["#050A12", "#09172A", "#0B2342", "#0E2F55"],
-            ),
-            content=ft.Column(
-                [
-                    topbar,
-                    ft.Container(height=20),
-                    hero,
-                    ft.Container(height=18),
-                    footer,
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=0,
-            ),
+        contenido = premium_page(
+            [
+                topbar,
+                ft.Container(height=20),
+                hero,
+                ft.Container(height=18),
+                footer,
+            ],
+            scroll=False,
         )
 
         return ft.View(route="/", controls=[contenido], padding=0, spacing=0)
@@ -902,11 +839,9 @@ def main(page: ft.Page):
 
 
 def _metric_card(titulo, texto):
-    return ft.Container(
+    return premium_card(
         padding=18,
         border_radius=22,
-        bgcolor=ft.Colors.with_opacity(0.09, ft.Colors.WHITE),
-        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
         content=ft.Column(
             [
                 ft.Text(
@@ -918,7 +853,7 @@ def _metric_card(titulo, texto):
                 ft.Text(
                     texto,
                     size=13,
-                    color=ft.Colors.WHITE70,
+                    color=TEXT_MUTED,
                 ),
             ],
             spacing=6,
@@ -930,8 +865,8 @@ def _mini_stat(titulo, texto):
     return ft.Container(
         padding=ft.Padding(14, 12, 14, 12),
         border_radius=20,
-        bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
-        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+        bgcolor=ft.Colors.with_opacity(0.08, CHAMPAGNE),
+        border=ft.border.all(1, ft.Colors.with_opacity(0.16, CHAMPAGNE)),
         content=ft.Column(
             [
                 ft.Text(

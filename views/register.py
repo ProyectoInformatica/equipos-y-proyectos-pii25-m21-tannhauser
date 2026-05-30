@@ -1,5 +1,15 @@
 import flet as ft
 from controllers.auth_controller import AuthController
+from utils.ui_premium import (
+    premium_page,
+    premium_header,
+    premium_card,
+    primary_button,
+    secondary_button,
+    status_badge,
+    TEXT_MUTED,
+    ACCENT,
+)
 
 
 def RegistroView(page: ft.Page, go):
@@ -99,6 +109,14 @@ def RegistroView(page: ft.Page, go):
     )
 
     mensaje = ft.Text("", color=ft.Colors.RED_300, size=14)
+
+    for campo in (nombre, email, password, password2):
+        campo.height = 60
+        campo.border_radius = 16
+        campo.border_color = ft.Colors.with_opacity(0.18, ft.Colors.WHITE)
+        campo.focused_border_color = ACCENT
+        campo.bgcolor = ft.Colors.with_opacity(0.07, ft.Colors.WHITE)
+        campo.text_size = 15
 
     render_avatar_preview()
 
@@ -205,6 +223,14 @@ def RegistroView(page: ft.Page, go):
         ),
     )
 
+    topbar = premium_header(
+        "Crear cuenta",
+        "Regístrate como cliente del supermercado",
+        actions=[
+            secondary_button("Volver", ft.Icons.ARROW_BACK_ROUNDED, on_click=lambda e: go("/")),
+        ],
+    )
+
     card = ft.Container(
         width=620,
         padding=32,
@@ -236,14 +262,9 @@ def RegistroView(page: ft.Page, go):
                 ft.Row([avatar_preview], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Row(
                     [
-                        ft.ElevatedButton(
+                        secondary_button(
                             "Añadir foto de perfil",
-                            icon=ft.Icons.ADD_A_PHOTO_ROUNDED,
-                            bgcolor="#64D7FF",
-                            color=ft.Colors.BLACK,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=16),
-                            ),
+                            ft.Icons.ADD_A_PHOTO_ROUNDED,
                             on_click=lambda e: file_picker.pick_files(
                                 allow_multiple=False,
                                 allowed_extensions=["png", "jpg", "jpeg", "webp"],
@@ -261,15 +282,10 @@ def RegistroView(page: ft.Page, go):
                 ft.Container(height=8),
                 ft.Row(
                     [
-                        ft.ElevatedButton(
+                        primary_button(
                             "Crear cuenta",
-                            icon=ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
+                            ft.Icons.PERSON_ADD_ALT_1_ROUNDED,
                             width=190,
-                            bgcolor="#64D7FF",
-                            color=ft.Colors.BLACK,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=18),
-                            ),
                             on_click=registrar,
                         ),
                     ],
@@ -297,6 +313,15 @@ def RegistroView(page: ft.Page, go):
         ),
     )
 
+    card.bgcolor = "#081421"
+    card.border = ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE))
+    card.shadow = ft.BoxShadow(
+        spread_radius=0,
+        blur_radius=34,
+        color=ft.Colors.with_opacity(0.28, ft.Colors.BLACK),
+        offset=ft.Offset(0, 16),
+    )
+
     contenido = ft.Container(
         expand=True,
         padding=30,
@@ -315,6 +340,14 @@ def RegistroView(page: ft.Page, go):
             spacing=0,
             scroll=ft.ScrollMode.AUTO,
         ),
+    )
+
+    contenido = premium_page(
+        [
+            topbar,
+            ft.Container(height=26),
+            ft.Row([card], alignment=ft.MainAxisAlignment.CENTER),
+        ],
     )
 
     return ft.View(

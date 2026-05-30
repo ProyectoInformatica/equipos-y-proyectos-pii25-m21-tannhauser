@@ -62,6 +62,22 @@ def secondary_button(text, icon=None, on_click=None, width=None):
     )
 
 
+def danger_button(text, icon=None, on_click=None, width=None):
+    return ft.OutlinedButton(
+        text,
+        icon=icon,
+        width=width,
+        height=46,
+        style=ft.ButtonStyle(
+            color="#FFB4B4",
+            side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.RED_200)),
+            shape=ft.RoundedRectangleBorder(radius=16),
+            padding=ft.Padding(18, 0, 18, 0),
+        ),
+        on_click=on_click,
+    )
+
+
 def status_badge(text, tone="neutral"):
     colors = {
         "gold": CHAMPAGNE,
