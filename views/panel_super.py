@@ -277,6 +277,12 @@ def PanelSuperView(page: ft.Page, go):
                 "Configura los valores que disparan alertas automáticas.",
                 "/admin_umbrales",
             ),
+            card_opcion(
+                ft.Icons.ECO_ROUNDED,
+                "Energia y sostenibilidad",
+                "Analiza consumo estimado, eficiencia, CO2 y recomendaciones de ahorro.",
+                "/energia",
+            ),
         ],
         wrap=True,
         spacing=20,

@@ -23,6 +23,7 @@ from views.admin_alertas import AdminAlertasView
 from views.admin_umbrales import AdminUmbralesView
 from views.perfil import PerfilView
 from views.fidelidad import FidelidadView
+from views.energia import EnergiaView
 from controllers.alerta_controller import AlertaController
 from views.empleado_sensores import EmpleadoSensoresView
 from views.empleado_luces import EmpleadoLucesView
@@ -734,6 +735,11 @@ def main(page: ft.Page):
                 _denegar_acceso()
                 return
 
+        if r == "/energia":
+            if not usuario or usuario.get("rol") != "superusuario":
+                _denegar_acceso()
+                return
+
         if r == "/panel_empleado":
             if not usuario or usuario.get("rol") != "empleado":
                 _denegar_acceso()
@@ -813,6 +819,8 @@ def main(page: ft.Page):
             page.views.append(ComentariosView(page, go))
         elif r == "/estadisticas_sensores":
             page.views.append(EstadisticasSensoresView(page, go))
+        elif r == "/energia":
+            page.views.append(EnergiaView(page, go))
         else:
             page.views.append(
                 ft.View(
