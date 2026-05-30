@@ -421,25 +421,35 @@ def main(page: ft.Page):
                 mostrar_siguiente_alerta()
 
             page.banner = ft.Banner(
-                bgcolor=ft.Colors.AMBER_100,
-                leading=ft.Icon(
-                    ft.Icons.WARNING_AMBER_ROUNDED,
-                    color=ft.Colors.AMBER_800,
+                bgcolor=SURFACE,
+                leading=ft.Container(
+                    width=46,
+                    height=46,
+                    border_radius=16,
+                    bgcolor=ft.Colors.with_opacity(0.13, CHAMPAGNE),
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.22, CHAMPAGNE)),
+                    alignment=ft.alignment.center,
+                    content=ft.Icon(
+                        ft.Icons.WARNING_AMBER_ROUNDED,
+                        color=CHAMPAGNE,
+                        size=25,
+                    ),
                 ),
                 content=ft.Column(
                     [
                         ft.Text(
-                            f"ALERTA: {titulo}",
-                            color=ft.Colors.BLACK,
+                            titulo,
+                            color=ft.Colors.WHITE,
                             weight=ft.FontWeight.BOLD,
+                            size=16,
                         ),
-                        ft.Text(descripcion, color=ft.Colors.BLACK),
+                        ft.Text(descripcion, color=TEXT_MUTED, size=13),
                     ],
                     spacing=4,
                 ),
                 actions=[
-                    ft.TextButton("Cerrar", on_click=cerrar_banner),
-                    ft.TextButton("Ir al sensor", on_click=ir_sensor_banner),
+                    secondary_button("Cerrar", icon=ft.Icons.CLOSE_ROUNDED, on_click=cerrar_banner),
+                    primary_button("Ir al sensor", icon=ft.Icons.ARROW_FORWARD_ROUNDED, on_click=ir_sensor_banner),
                 ],
             )
             page.banner.open = True
@@ -453,10 +463,31 @@ def main(page: ft.Page):
             mostrar_siguiente_alerta()
 
         page.snack_bar = ft.SnackBar(
-            content=ft.Text(f"{titulo}: {descripcion}"),
+            content=ft.Row(
+                [
+                    ft.Container(
+                        width=34,
+                        height=34,
+                        border_radius=12,
+                        bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.CYAN_100),
+                        alignment=ft.alignment.center,
+                        content=ft.Icon(ft.Icons.NOTIFICATIONS_ACTIVE_ROUNDED, color=ft.Colors.CYAN_100, size=18),
+                    ),
+                    ft.Column(
+                        [
+                            ft.Text(titulo, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=13),
+                            ft.Text(descripcion, color=TEXT_MUTED, size=12),
+                        ],
+                        spacing=1,
+                        tight=True,
+                    ),
+                ],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
             action="Ir al sensor",
             on_action=snack_ir_sensor,
-            bgcolor=ft.Colors.BLUE_600,
+            bgcolor=SURFACE,
             duration=4000,
         )
         page.snack_bar.open = True
@@ -726,7 +757,7 @@ def main(page: ft.Page):
                 return
 
         if r == "/estadisticas_sensores":
-            if not usuario or usuario.get("rol") not in ["administrador", "superusuario"]:
+            if not usuario or usuario.get("rol") != "administrador":
                 _denegar_acceso()
                 return
 

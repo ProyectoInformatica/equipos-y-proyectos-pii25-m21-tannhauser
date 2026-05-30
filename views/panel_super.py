@@ -1,15 +1,12 @@
 import flet as ft
-from models.session_manager import get_current_user, set_current_user
+from models.session_manager import get_current_user
 from utils.ui_premium import (
     premium_page,
     premium_header,
-    primary_button,
     secondary_button,
     action_card,
     status_badge,
     SURFACE,
-    TEXT_MUTED,
-    CHAMPAGNE,
 )
 
 
@@ -17,127 +14,11 @@ def PanelSuperView(page: ft.Page, go):
     usuario = get_current_user() or {}
     nombre = usuario.get("nombre", "Superusuario")
 
-    def cerrar_sesion(e):
-        set_current_user(None)
-        go("/")
-
-    def card_opcion(icono, titulo, texto, ruta, color_icono="#9CEBFF"):
+    def card_opcion(icono, titulo, texto, ruta):
         return action_card(icono, titulo, texto, "Abrir", on_click=lambda e: go(ruta))
 
-        return ft.Container(
-            width=320,
-            padding=24,
-            border_radius=26,
-            bgcolor=ft.Colors.with_opacity(0.11, ft.Colors.BLACK),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
-            shadow=ft.BoxShadow(
-                spread_radius=0,
-                blur_radius=16,
-                color=ft.Colors.with_opacity(0.10, ft.Colors.BLACK),
-                offset=ft.Offset(0, 8),
-            ),
-            content=ft.Column(
-                [
-                    ft.Container(
-                        width=56,
-                        height=56,
-                        border_radius=18,
-                        bgcolor=ft.Colors.with_opacity(0.14, ft.Colors.CYAN_300),
-                        alignment=ft.alignment.center,
-                        content=ft.Icon(icono, size=30, color=color_icono),
-                    ),
-                    ft.Text(
-                        titulo,
-                        size=22,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE,
-                    ),
-                    ft.Text(
-                        texto,
-                        size=14,
-                        color=ft.Colors.WHITE70,
-                    ),
-                    ft.Container(height=4),
-                    ft.ElevatedButton(
-                        "Abrir",
-                        icon=ft.Icons.ARROW_FORWARD_ROUNDED,
-                        bgcolor="#64D7FF",
-                        color=ft.Colors.BLACK,
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=16),
-                        ),
-                        on_click=lambda e: go(ruta),
-                    ),
-                ],
-                spacing=14,
-            ),
-        )
-
-    header = ft.Container(
-        width=1180,
-        padding=ft.Padding(28, 22, 28, 22),
-        border_radius=28,
-        bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
-        border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
-        content=ft.Row(
-            [
-                ft.Row(
-                    [
-                        ft.Container(
-                            width=72,
-                            height=72,
-                            border_radius=22,
-                            bgcolor=ft.Colors.with_opacity(0.94, ft.Colors.WHITE),
-                            padding=10,
-                            content=ft.Image(
-                                src="logo_tannhauser.png",
-                                fit=ft.ImageFit.CONTAIN,
-                            ),
-                        ),
-                        ft.Column(
-                            [
-                                ft.Text(
-                                    "Centro de administración global",
-                                    size=30,
-                                    weight=ft.FontWeight.BOLD,
-                                    color=ft.Colors.WHITE,
-                                ),
-                                ft.Text(
-                                    f"Bienvenido, {nombre}",
-                                    size=15,
-                                    color=ft.Colors.WHITE70,
-                                ),
-                            ],
-                            spacing=4,
-                            alignment=ft.MainAxisAlignment.CENTER,
-                        ),
-                    ],
-                    spacing=18,
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
-                ft.Row(
-                    [
-                        ft.OutlinedButton(
-                            "Mi perfil",
-                            icon=ft.Icons.PERSON_ROUNDED,
-                            style=ft.ButtonStyle(
-                                color=ft.Colors.WHITE,
-                                side=ft.BorderSide(1.1, ft.Colors.with_opacity(0.28, ft.Colors.WHITE)),
-                                shape=ft.RoundedRectangleBorder(radius=16),
-                            ),
-                            on_click=lambda e: go("/perfil"),
-                        ),
-                    ],
-                    spacing=12,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-        ),
-    )
-
     header = premium_header(
-        "Centro de administración global",
+        "Centro de administracion global",
         "Bienvenido",
         name=nombre,
         actions=[
@@ -149,8 +30,14 @@ def PanelSuperView(page: ft.Page, go):
         width=1180,
         padding=28,
         border_radius=28,
-        bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-        border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+        bgcolor=SURFACE,
+        border=ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE)),
+        shadow=ft.BoxShadow(
+            spread_radius=0,
+            blur_radius=32,
+            color=ft.Colors.with_opacity(0.26, ft.Colors.BLACK),
+            offset=ft.Offset(0, 16),
+        ),
         content=ft.Row(
             [
                 ft.Container(
@@ -160,8 +47,8 @@ def PanelSuperView(page: ft.Page, go):
                             ft.Row(
                                 [
                                     status_badge("Control total", "gold"),
-                                    status_badge("Administración", "cyan"),
-                                    status_badge("Crítico", "green"),
+                                    status_badge("Administracion", "cyan"),
+                                    status_badge("Energia", "green"),
                                 ],
                                 spacing=10,
                                 wrap=True,
@@ -173,7 +60,7 @@ def PanelSuperView(page: ft.Page, go):
                                 color=ft.Colors.WHITE,
                             ),
                             ft.Text(
-                                "Administra usuarios, revisa actividad, supervisa sensores, consulta estadísticas, cámara, alertas y módulos críticos del sistema desde un solo panel.",
+                                "Administra usuarios, actividad, inventario, sensores, camara, alertas, umbrales y sostenibilidad desde un solo panel.",
                                 size=16,
                                 color=ft.Colors.WHITE70,
                                 width=700,
@@ -195,7 +82,7 @@ def PanelSuperView(page: ft.Page, go):
                             ft.Text("Nivel de acceso", size=14, color=ft.Colors.WHITE60),
                             ft.Text("Superusuario", size=24, weight=ft.FontWeight.BOLD, color="#9CEBFF"),
                             ft.Text(
-                                "Permisos completos sobre la administración de la plataforma.",
+                                "Permisos completos sobre la administracion de la plataforma.",
                                 size=13,
                                 color=ft.Colors.WHITE70,
                             ),
@@ -239,10 +126,10 @@ def PanelSuperView(page: ft.Page, go):
     grid2 = ft.Row(
         [
             card_opcion(
-                ft.Icons.QUERY_STATS_ROUNDED,
-                "Estadísticas",
-                "Consulta métricas, consumo y datos agregados de sensores reales.",
-                "/estadisticas_sensores",
+                ft.Icons.ECO_ROUNDED,
+                "Energia y sostenibilidad",
+                "Analiza consumo, historico, eficiencia, CO2 y recomendaciones de ahorro.",
+                "/energia",
             ),
             card_opcion(
                 ft.Icons.MAP_ROUNDED,
@@ -252,7 +139,7 @@ def PanelSuperView(page: ft.Page, go):
             ),
             card_opcion(
                 ft.Icons.VIDEOCAM_ROUNDED,
-                "Cámara",
+                "Camara",
                 "Acceso a la interfaz y al stream de la ESP32-CAM.",
                 "/admin_camara",
             ),
@@ -268,66 +155,20 @@ def PanelSuperView(page: ft.Page, go):
             card_opcion(
                 ft.Icons.NOTIFICATIONS_ACTIVE_ROUNDED,
                 "Alertas",
-                "Consulta el historial de alertas y accede rápidamente al sensor afectado.",
+                "Consulta el historial de alertas y accede rapidamente al sensor afectado.",
                 "/admin_alertas",
             ),
             card_opcion(
                 ft.Icons.TUNE_ROUNDED,
                 "Umbrales",
-                "Configura los valores que disparan alertas automáticas.",
+                "Configura los valores que disparan alertas automaticas.",
                 "/admin_umbrales",
-            ),
-            card_opcion(
-                ft.Icons.ECO_ROUNDED,
-                "Energia y sostenibilidad",
-                "Analiza consumo estimado, eficiencia, CO2 y recomendaciones de ahorro.",
-                "/energia",
             ),
         ],
         wrap=True,
         spacing=20,
         run_spacing=20,
         alignment=ft.MainAxisAlignment.CENTER,
-    )
-
-    resumen.bgcolor = SURFACE
-    resumen.border = ft.border.all(1.1, ft.Colors.with_opacity(0.15, ft.Colors.WHITE))
-    resumen.shadow = ft.BoxShadow(
-        spread_radius=0,
-        blur_radius=32,
-        color=ft.Colors.with_opacity(0.26, ft.Colors.BLACK),
-        offset=ft.Offset(0, 16),
-    )
-
-    contenido = ft.Container(
-        expand=True,
-        padding=30,
-        gradient=ft.LinearGradient(
-            begin=ft.Alignment(-1, -1),
-            end=ft.Alignment(1, 1),
-            colors=[
-                "#050A12",
-                "#09172A",
-                "#0B2342",
-                "#0E2F55",
-            ],
-        ),
-        content=ft.Column(
-            [
-                header,
-                ft.Container(height=18),
-                resumen,
-                ft.Container(height=24),
-                grid,
-                ft.Container(height=20),
-                grid2,
-                ft.Container(height=20),
-                grid3,
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=0,
-            scroll=ft.ScrollMode.AUTO,
-        ),
     )
 
     contenido = premium_page(

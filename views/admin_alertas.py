@@ -2,7 +2,15 @@ import flet as ft
 from controllers.alerta_controller import AlertaController
 from models.session_manager import get_current_user
 from utils.navigation import ruta_dashboard_por_rol
-from utils.ui_premium import premium_empty_state, primary_button, secondary_button
+from utils.ui_premium import (
+    CHAMPAGNE,
+    SURFACE,
+    TEXT_MUTED,
+    premium_empty_state,
+    primary_button,
+    secondary_button,
+    status_badge,
+)
 
 
 def AdminAlertasView(page: ft.Page, go):
@@ -15,8 +23,8 @@ def AdminAlertasView(page: ft.Page, go):
 
     def mostrar_mensaje(msg, error=False):
         page.snack_bar = ft.SnackBar(
-            ft.Text(msg),
-            bgcolor=ft.Colors.RED_600 if error else ft.Colors.GREEN_600,
+            ft.Text(msg, color=ft.Colors.WHITE),
+            bgcolor="#3B1D24" if error else "#10281F",
         )
         page.snack_bar.open = True
         page.update()
@@ -47,7 +55,7 @@ def AdminAlertasView(page: ft.Page, go):
         sev = (a.get("severity") or "info").lower()
         color = color_severity(sev)
         titulo = a.get("title") or "Alerta"
-        descripcion = a.get("description") or "Sin descripción"
+        descripcion = a.get("description") or "Sin descripcion"
         fecha = str(a.get("event_time") or a.get("created_at") or "Sin fecha")
         sensor = (
             (a.get("payload_json") or {}).get("state_code")
@@ -76,8 +84,15 @@ def AdminAlertasView(page: ft.Page, go):
             width=1180,
             padding=20,
             border_radius=22,
-            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+            bgcolor=SURFACE,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.24, color)),
+            shadow=ft.BoxShadow(
+                spread_radius=0,
+                blur_radius=24,
+                color=ft.Colors.with_opacity(0.24, ft.Colors.BLACK),
+                offset=ft.Offset(0, 12),
+            ),
+            animate_opacity=180,
             content=ft.Column(
                 [
                     ft.Row(
@@ -85,9 +100,23 @@ def AdminAlertasView(page: ft.Page, go):
                             ft.Row(
                                 [
                                     ft.Container(
+                                        width=42,
+                                        height=42,
+                                        border_radius=15,
+                                        bgcolor=ft.Colors.with_opacity(0.12, color),
+                                        border=ft.border.all(1, ft.Colors.with_opacity(0.18, color)),
+                                        alignment=ft.alignment.center,
+                                        content=ft.Icon(
+                                            ft.Icons.PRIORITY_HIGH_ROUNDED if sev == "critical" else ft.Icons.NOTIFICATIONS_ACTIVE_ROUNDED,
+                                            color=color,
+                                            size=22,
+                                        ),
+                                    ),
+                                    ft.Container(
                                         padding=ft.Padding(12, 6, 12, 6),
                                         border_radius=999,
                                         bgcolor=ft.Colors.with_opacity(0.18, color),
+                                        border=ft.border.all(1, ft.Colors.with_opacity(0.22, color)),
                                         content=ft.Text(
                                             sev.upper(),
                                             size=12,
@@ -99,7 +128,7 @@ def AdminAlertasView(page: ft.Page, go):
                                         titulo,
                                         size=18,
                                         weight=ft.FontWeight.BOLD,
-                                        color=color,
+                                        color=ft.Colors.WHITE,
                                     ),
                                 ],
                                 spacing=10,
@@ -115,7 +144,7 @@ def AdminAlertasView(page: ft.Page, go):
                     ft.Text(
                         descripcion,
                         size=14,
-                        color=ft.Colors.WHITE,
+                        color=TEXT_MUTED,
                     ),
                     ft.Text(
                         f"Sensor afectado: {sensor}",
@@ -183,12 +212,19 @@ def AdminAlertasView(page: ft.Page, go):
                     width=1180,
                     padding=24,
                     border_radius=28,
-                    bgcolor=ft.Colors.with_opacity(0.10, ft.Colors.WHITE),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+                    bgcolor=SURFACE,
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.16, CHAMPAGNE)),
+                    shadow=ft.BoxShadow(
+                        spread_radius=0,
+                        blur_radius=28,
+                        color=ft.Colors.with_opacity(0.24, ft.Colors.BLACK),
+                        offset=ft.Offset(0, 14),
+                    ),
                     content=ft.Row(
                         [
                             ft.Column(
                                 [
+                                    status_badge("Alertas premium", "gold"),
                                     ft.Text(
                                         "Centro de alertas",
                                         size=34,
@@ -198,7 +234,7 @@ def AdminAlertasView(page: ft.Page, go):
                                     ft.Text(
                                         "Consulta alertas activas, resuelve incidencias y revisa el historial.",
                                         size=15,
-                                        color=ft.Colors.WHITE70,
+                                        color=TEXT_MUTED,
                                     ),
                                 ],
                                 spacing=6,
@@ -228,8 +264,14 @@ def AdminAlertasView(page: ft.Page, go):
                     width=1180,
                     padding=20,
                     border_radius=24,
-                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                    bgcolor=SURFACE,
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+                    shadow=ft.BoxShadow(
+                        spread_radius=0,
+                        blur_radius=22,
+                        color=ft.Colors.with_opacity(0.20, ft.Colors.BLACK),
+                        offset=ft.Offset(0, 10),
+                    ),
                     content=ft.Column(
                         [
                             ft.Text("Alertas activas", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
@@ -243,8 +285,14 @@ def AdminAlertasView(page: ft.Page, go):
                     width=1180,
                     padding=20,
                     border_radius=24,
-                    bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.12, ft.Colors.WHITE)),
+                    bgcolor=SURFACE,
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.14, ft.Colors.WHITE)),
+                    shadow=ft.BoxShadow(
+                        spread_radius=0,
+                        blur_radius=22,
+                        color=ft.Colors.with_opacity(0.20, ft.Colors.BLACK),
+                        offset=ft.Offset(0, 10),
+                    ),
                     content=ft.Column(
                         [
                             ft.Text("Historial de alertas", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),

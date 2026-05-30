@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any
 
 from mysql.connector import Error
@@ -14,10 +16,11 @@ class EnergyAssumptions:
     co2_kg_kwh: float = 0.231
     target_monthly_kwh: float = 120.0
     days_per_month: int = 30
+    snapshot_min_interval_seconds: int = 60
 
 
 class EnergyManager:
-    """Read-only energy estimator for the local smart-supermarket demo."""
+    """Energy estimator and history writer for the local smart-supermarket demo."""
 
     POWER_BY_KIND_W = {
         "esp32": 0.45,
@@ -59,7 +62,26 @@ class EnergyManager:
     def __init__(self, assumptions: EnergyAssumptions | None = None):
         self.assumptions = assumptions or EnergyAssumptions()
 
-    def resumen(self) -> dict[str, Any]:
+    CREATE_TABLE_SQL = """
+        CREATE TABLE IF NOT EXISTS energy_snapshots (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+            total_watts DECIMAL(10,4) NOT NULL DEFAULT 0,
+            daily_kwh DECIMAL(10,4) NOT NULL DEFAULT 0,
+            monthly_kwh DECIMAL(10,4) NOT NULL DEFAULT 0,
+            monthly_cost_eur DECIMAL(10,4) NOT NULL DEFAULT 0,
+            monthly_co2_kg DECIMAL(10,4) NOT NULL DEFAULT 0,
+            efficiency_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
+            highest_consumer VARCHAR(160) DEFAULT NULL,
+            sustainability_status VARCHAR(60) DEFAULT NULL,
+            source VARCHAR(40) NOT NULL DEFAULT 'estimated',
+            breakdown_json JSON DEFAULT NULL,
+            PRIMARY KEY (id),
+            KEY idx_energy_snapshots_created_at (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """
+
+    def resumen(self, persist: bool = True) -> dict[str, Any]:
         devices = self._read_devices()
         if not devices:
             devices = [dict(item, source="estimado") for item in self.FALLBACK_DEVICES]
@@ -74,7 +96,7 @@ class EnergyManager:
         efficiency = max(0, min(100, round(100 - (monthly_kwh / target * 100), 1)))
         top = max(rows, key=lambda item: item["power_w"], default=None)
 
-        return {
+        result = {
             "devices": rows,
             "totals": {
                 "instant_w": total_w,
@@ -94,7 +116,16 @@ class EnergyManager:
                 "co2_kg_kwh": self.assumptions.co2_kg_kwh,
                 "target_monthly_kwh": self.assumptions.target_monthly_kwh,
             },
+            "history": self.obtener_historial(limit=18),
         }
+
+        if persist:
+            saved = self.guardar_snapshot(result)
+            result["snapshot_saved"] = saved
+            if saved:
+                result["history"] = self.obtener_historial(limit=18)
+
+        return result
 
     def _read_devices(self) -> list[dict[str, Any]]:
         conn = get_connection()
@@ -116,7 +147,15 @@ class EnergyManager:
                     st.name AS sensor_name,
                     cs.state_code,
                     cs.state_value,
-                    cs.numeric_value
+                    cs.numeric_value,
+                    (
+                        SELECT r.consumption_w
+                        FROM readings r
+                        WHERE r.device_id = d.id
+                          AND r.consumption_w IS NOT NULL
+                        ORDER BY r.recorded_at DESC
+                        LIMIT 1
+                    ) AS latest_consumption_w
                 FROM devices d
                 LEFT JOIN sensor_types st ON st.id = d.sensor_type_id
                 LEFT JOIN current_state cs ON cs.device_id = d.id
@@ -145,9 +184,12 @@ class EnergyManager:
                     "sensor_code": row.get("sensor_code") or "",
                     "sensor_name": row.get("sensor_name") or "",
                     "states": {},
+                    "latest_consumption_w": row.get("latest_consumption_w"),
                     "source": "base de datos",
                 },
             )
+            if item.get("latest_consumption_w") is None and row.get("latest_consumption_w") is not None:
+                item["latest_consumption_w"] = row.get("latest_consumption_w")
             state_code = row.get("state_code")
             if state_code:
                 item["states"][state_code] = {
@@ -165,6 +207,12 @@ class EnergyManager:
 
         kind = self._detect_kind(key)
         power = self.POWER_BY_KIND_W.get(kind, self.POWER_BY_KIND_W["generic"])
+        measured = row.get("latest_consumption_w")
+        if measured is not None:
+            try:
+                power = max(0.0, float(measured))
+            except Exception:
+                pass
 
         if kind == "light":
             intensity = self._extract_intensity(row)
@@ -175,11 +223,112 @@ class EnergyManager:
             "device_name": row.get("device_name") or row.get("device_code") or "Dispositivo",
             "location_name": row.get("location_name") or "Sin zona",
             "kind": kind,
+            "icon": self._icon_for_kind(kind),
             "power_w": round(power, 3),
             "daily_wh": round(power * 24, 2),
             "monthly_kwh": round(power * 24 * self.assumptions.days_per_month / 1000, 3),
             "source": row.get("source") or "estimado",
         }
+
+    def guardar_snapshot(self, data: dict[str, Any]) -> bool:
+        conn = get_connection()
+        if not conn:
+            return False
+
+        cursor = None
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(self.CREATE_TABLE_SQL)
+            conn.commit()
+
+            cursor.execute("SELECT created_at FROM energy_snapshots ORDER BY created_at DESC LIMIT 1")
+            last = cursor.fetchone()
+            if last and last.get("created_at"):
+                elapsed = datetime.now() - last["created_at"]
+                if elapsed < timedelta(seconds=self.assumptions.snapshot_min_interval_seconds):
+                    return False
+
+            totals = data["totals"]
+            top = totals.get("top_device") or {}
+            cursor.execute(
+                """
+                INSERT INTO energy_snapshots (
+                    total_watts,
+                    daily_kwh,
+                    monthly_kwh,
+                    monthly_cost_eur,
+                    monthly_co2_kg,
+                    efficiency_percent,
+                    highest_consumer,
+                    sustainability_status,
+                    source,
+                    breakdown_json
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    totals["instant_w"],
+                    totals["daily_kwh"],
+                    totals["monthly_kwh"],
+                    totals["cost_month_eur"],
+                    totals["co2_month_kg"],
+                    totals["efficiency_pct"],
+                    top.get("device_name"),
+                    (totals.get("state") or {}).get("label"),
+                    "estimated_current_state",
+                    json.dumps(data["devices"], ensure_ascii=False),
+                ),
+            )
+            conn.commit()
+            return True
+        except Error:
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn and conn.is_connected():
+                conn.close()
+
+    def obtener_historial(self, limit: int = 18) -> list[dict[str, Any]]:
+        conn = get_connection()
+        if not conn:
+            return []
+
+        cursor = None
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(self.CREATE_TABLE_SQL)
+            conn.commit()
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    created_at,
+                    total_watts,
+                    daily_kwh,
+                    monthly_kwh,
+                    monthly_cost_eur,
+                    monthly_co2_kg,
+                    efficiency_percent,
+                    highest_consumer,
+                    sustainability_status
+                FROM energy_snapshots
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (int(limit),),
+            )
+            rows = cursor.fetchall() or []
+            return list(reversed(rows))
+        except Error:
+            return []
+        finally:
+            if cursor:
+                cursor.close()
+            if conn and conn.is_connected():
+                conn.close()
 
     def _detect_kind(self, text: str) -> str:
         checks = [
@@ -216,6 +365,21 @@ class EnergyManager:
         if efficiency >= 60:
             return {"label": "Equilibrado", "tone": "gold", "summary": "Buen consumo, con margen de optimizacion."}
         return {"label": "Mejorable", "tone": "neutral", "summary": "Conviene revisar cargas de mayor consumo."}
+
+    def _icon_for_kind(self, kind: str):
+        return {
+            "temperature": "thermostat",
+            "humidity": "water_drop",
+            "mq135": "air",
+            "distance": "straighten",
+            "door": "door",
+            "ldr": "wb_sunny",
+            "light": "lightbulb",
+            "esp32_cam": "videocam",
+            "camera": "videocam",
+            "fridge": "kitchen",
+            "esp32": "memory",
+        }.get(kind, "sensors")
 
     def _recommendations(self, rows: list[dict[str, Any]], monthly_kwh: float, efficiency: float) -> list[str]:
         recs: list[str] = []
