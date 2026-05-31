@@ -6,9 +6,13 @@ from utils.ui_premium import (
     CHAMPAGNE,
     SURFACE,
     TEXT_MUTED,
+    glass_panel,
     premium_empty_state,
+    premium_snackbar,
     primary_button,
     secondary_button,
+    severity_badge,
+    severity_style,
     status_badge,
 )
 
@@ -22,20 +26,12 @@ def AdminAlertasView(page: ft.Page, go):
     historial_column = ft.Column(spacing=14)
 
     def mostrar_mensaje(msg, error=False):
-        page.snack_bar = ft.SnackBar(
-            ft.Text(msg, color=ft.Colors.WHITE),
-            bgcolor="#3B1D24" if error else "#10281F",
-        )
+        page.snack_bar = premium_snackbar(msg, ok=not error)
         page.snack_bar.open = True
         page.update()
 
     def color_severity(sev):
-        sev = (sev or "info").lower()
-        if sev == "critical":
-            return "#F87171"
-        if sev == "warning":
-            return "#FBBF24"
-        return "#67E8F9"
+        return severity_style(sev)["accent"]
 
     def ir_sensor(evento):
         ruta = controller.ruta_para_evento(evento, rol)
@@ -53,6 +49,7 @@ def AdminAlertasView(page: ft.Page, go):
 
     def _card_alerta(a, activa=True):
         sev = (a.get("severity") or "info").lower()
+        style = severity_style(sev)
         color = color_severity(sev)
         titulo = a.get("title") or "Alerta"
         descripcion = a.get("description") or "Sin descripcion"
@@ -80,21 +77,14 @@ def AdminAlertasView(page: ft.Page, go):
                 )
             )
 
-        return ft.Container(
+        return glass_panel(
             width=1180,
             padding=20,
             border_radius=22,
-            bgcolor=SURFACE,
-            border=ft.border.all(1, ft.Colors.with_opacity(0.24, color)),
-            shadow=ft.BoxShadow(
-                spread_radius=0,
-                blur_radius=24,
-                color=ft.Colors.with_opacity(0.24, ft.Colors.BLACK),
-                offset=ft.Offset(0, 12),
-            ),
-            animate_opacity=180,
+            accent=color,
             content=ft.Column(
                 [
+                    ft.Container(height=3, border_radius=999, bgcolor=ft.Colors.with_opacity(0.55, color)),
                     ft.Row(
                         [
                             ft.Row(
@@ -104,26 +94,15 @@ def AdminAlertasView(page: ft.Page, go):
                                         height=42,
                                         border_radius=15,
                                         bgcolor=ft.Colors.with_opacity(0.12, color),
-                                        border=ft.border.all(1, ft.Colors.with_opacity(0.18, color)),
+                                        border=ft.border.all(1, ft.Colors.with_opacity(0.24, style["tone"])),
                                         alignment=ft.alignment.center,
                                         content=ft.Icon(
-                                            ft.Icons.PRIORITY_HIGH_ROUNDED if sev == "critical" else ft.Icons.NOTIFICATIONS_ACTIVE_ROUNDED,
-                                            color=color,
+                                            style["icon"],
+                                            color=style["tone"],
                                             size=22,
                                         ),
                                     ),
-                                    ft.Container(
-                                        padding=ft.Padding(12, 6, 12, 6),
-                                        border_radius=999,
-                                        bgcolor=ft.Colors.with_opacity(0.18, color),
-                                        border=ft.border.all(1, ft.Colors.with_opacity(0.22, color)),
-                                        content=ft.Text(
-                                            sev.upper(),
-                                            size=12,
-                                            weight=ft.FontWeight.BOLD,
-                                            color=ft.Colors.WHITE,
-                                        ),
-                                    ),
+                                    severity_badge(sev),
                                     ft.Text(
                                         titulo,
                                         size=18,
@@ -149,7 +128,7 @@ def AdminAlertasView(page: ft.Page, go):
                     ft.Text(
                         f"Sensor afectado: {sensor}",
                         size=13,
-                        color=ft.Colors.WHITE70,
+                        color=style["tone"],
                     ),
                     ft.Row(
                         acciones,

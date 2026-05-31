@@ -21,10 +21,13 @@ class EnergiaView(ft.View):
     REFRESH_SECONDS = 10
 
     ICONS_BY_KIND = {
+        "dht11": ft.Icons.THERMOSTAT_ROUNDED,
         "temperature": ft.Icons.THERMOSTAT_ROUNDED,
         "humidity": ft.Icons.WATER_DROP_ROUNDED,
         "mq135": ft.Icons.AIR_ROUNDED,
+        "hc_sr04": ft.Icons.SENSORS_ROUNDED,
         "distance": ft.Icons.STRAIGHTEN_ROUNDED,
+        "lcd16x2": ft.Icons.DISPLAY_SETTINGS_ROUNDED,
         "door": ft.Icons.DOOR_FRONT_DOOR_ROUNDED,
         "ldr": ft.Icons.WB_SUNNY_ROUNDED,
         "light": ft.Icons.LIGHTBULB_ROUNDED,
@@ -67,8 +70,8 @@ class EnergiaView(ft.View):
 
     def _build(self):
         header = premium_header(
-            "Eficiencia energetica",
-            "Consumo estimado, sostenibilidad e historico operativo.",
+            "Energia y sostenibilidad",
+            "Consumo estimado de DHT11, MQ135, HC-SR04 y LCD 16x2.",
             actions=[
                 secondary_button("Volver al panel", ft.Icons.ARROW_BACK_ROUNDED, on_click=lambda e: self.go("/panel_super")),
                 primary_button("Refrescar", ft.Icons.REFRESH_ROUNDED, on_click=self.refresh),
@@ -286,8 +289,8 @@ class EnergiaView(ft.View):
                                 spacing=10,
                                 wrap=True,
                             ),
-                            ft.Text("Estado sostenible del supermercado", size=34, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                            ft.Text(state["summary"], size=16, color=TEXT_MUTED, width=640),
+                            ft.Text("Estado energetico de sensores reales", size=34, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                            ft.Text(f"{state['summary']} El consumo mostrado es estimado salvo que exista consumption_w en readings.", size=16, color=TEXT_MUTED, width=680),
                             self.progress_bar(totals["efficiency_pct"], 100, "#B8FFE1" if totals["efficiency_pct"] >= 70 else CHAMPAGNE, 12),
                             ft.Text(f"Eficiencia global estimada: {self.fmt(totals['efficiency_pct'], '%', 1)}", size=14, color=ft.Colors.WHITE70),
                         ],
@@ -303,7 +306,7 @@ class EnergiaView(ft.View):
                         content=ft.Column(
                             [
                                 ft.Icon(self.icon_for_device(top_device), color=CHAMPAGNE, size=36),
-                                ft.Text("Mayor consumo", size=13, color=ft.Colors.WHITE60),
+                                ft.Text("Mayor consumidor", size=13, color=ft.Colors.WHITE60),
                                 ft.Text(top_device.get("device_name", "Sin datos"), size=21, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                                 ft.Text(self.fmt(top_device.get("power_w", 0), " W", 3), size=18, color=CHAMPAGNE, weight=ft.FontWeight.BOLD),
                             ],
@@ -318,12 +321,12 @@ class EnergiaView(ft.View):
 
         self.metrics_slot.content = ft.ResponsiveRow(
             [
-                metric_card(ft.Icons.ELECTRIC_BOLT_ROUNDED, "Consumo actual", self.fmt(totals["instant_w"], " W", 3), "Estimado desde sensores/dispositivos", "gold", col={"xs": 12, "md": 4, "lg": 3}),
-                metric_card(ft.Icons.CALENDAR_TODAY_ROUNDED, "Consumo diario", self.fmt(totals["daily_kwh"], " kWh", 3), self.fmt(totals["daily_wh"], " Wh"), "cyan", col={"xs": 12, "md": 4, "lg": 3}),
-                metric_card(ft.Icons.DATE_RANGE_ROUNDED, "Consumo mensual", self.fmt(totals["monthly_kwh"], " kWh", 3), f"{totals['device_count']} dispositivos activos", "cyan", col={"xs": 12, "md": 4, "lg": 3}),
+                metric_card(ft.Icons.ELECTRIC_BOLT_ROUNDED, "Consumo actual estimado", self.fmt(totals["instant_w"], " W", 3), assumptions["scope"], "gold", col={"xs": 12, "md": 4, "lg": 3}),
+                metric_card(ft.Icons.CALENDAR_TODAY_ROUNDED, "Consumo diario estimado", self.fmt(totals["daily_kwh"], " kWh", 3), self.fmt(totals["daily_wh"], " Wh"), "cyan", col={"xs": 12, "md": 4, "lg": 3}),
+                metric_card(ft.Icons.DATE_RANGE_ROUNDED, "Consumo mensual estimado", self.fmt(totals["monthly_kwh"], " kWh", 3), f"{totals['device_count']} dispositivos reales", "cyan", col={"xs": 12, "md": 4, "lg": 3}),
                 metric_card(ft.Icons.EURO_ROUNDED, "Coste mensual", self.fmt(totals["cost_month_eur"], " EUR"), f"{assumptions['price_eur_kwh']} EUR/kWh", "gold", col={"xs": 12, "md": 4, "lg": 3}),
                 metric_card(ft.Icons.CLOUD_ROUNDED, "CO2 mensual", self.fmt(totals["co2_month_kg"], " kg"), f"{assumptions['co2_kg_kwh']} kg/kWh", "cyan", col={"xs": 12, "md": 4, "lg": 3}),
-                metric_card(ft.Icons.SAVINGS_ROUNDED, "Ahorro potencial", "8-18%", "Reduciendo luces y muestreo nocturno", "gold", col={"xs": 12, "md": 4, "lg": 3}),
+                metric_card(ft.Icons.SAVINGS_ROUNDED, "Ahorro potencial", "5-15%", "Muestreo adaptativo y backlight LCD", "gold", col={"xs": 12, "md": 4, "lg": 3}),
             ],
             spacing=16,
             run_spacing=16,
@@ -339,12 +342,12 @@ class EnergiaView(ft.View):
                 [
                     ft.Row(
                         [
-                            ft.Text("Dispositivos y sensores", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                            status_badge("current_state + readings", "cyan"),
+                            ft.Text("Desglose por sensor real", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                            status_badge("DHT11 / MQ135 / HC-SR04 / LCD", "cyan"),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
-                    ft.Text("Cards visuales con consumo estimado por tipo de dispositivo y ultimo consumo registrado si existe.", color=TEXT_MUTED, size=14),
+                    ft.Text("Cards visuales centradas en sensores reales; si hay readings.consumption_w se usa como dato medido.", color=TEXT_MUTED, size=14),
                     ft.ResponsiveRow(
                         [self.device_card(device, max_power) for device in sorted(devices, key=lambda item: item["power_w"], reverse=True)],
                         spacing=16,
@@ -375,12 +378,17 @@ class EnergiaView(ft.View):
                     border_radius=28,
                     content=ft.Column(
                         [
-                            ft.Text("Datos ecosostenibles", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                            ft.Text("El calculo combina dispositivos activos, estados actuales y el ultimo consumption_w registrado cuando existe.", size=14, color=TEXT_MUTED),
+                            ft.Text("Escalabilidad energetica", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                            ft.Text("Arquitectura preparada para crecer sin cambiar la base del historico energetico.", size=14, color=TEXT_MUTED),
                             ft.Divider(color=ft.Colors.with_opacity(0.10, ft.Colors.WHITE)),
-                            ft.Text(f"Huella estimada mensual: {self.fmt(totals['co2_month_kg'], ' kg CO2')}.", color=ft.Colors.WHITE70),
-                            ft.Text(f"Objetivo de referencia: {assumptions['target_monthly_kwh']} kWh/mes.", color=ft.Colors.WHITE70),
-                            ft.Text("La escritura historica esta limitada para no saturar MySQL.", color=ft.Colors.WHITE70),
+                            ft.Column(
+                                [
+                                    self.architecture_item(item)
+                                    for item in data.get("architecture", [])
+                                ],
+                                spacing=10,
+                            ),
+                            ft.Text(f"Huella estimada mensual: {self.fmt(totals['co2_month_kg'], ' kg CO2')}. Objetivo: {assumptions['target_monthly_kwh']} kWh/mes.", color=ft.Colors.WHITE70),
                         ],
                         spacing=12,
                     ),
@@ -394,3 +402,32 @@ class EnergiaView(ft.View):
             self.update()
         except AssertionError:
             pass
+
+    def architecture_item(self, item):
+        icon_name = item.get("icon", "sensors")
+        icon = {
+            "hub": ft.Icons.HUB_ROUNDED,
+            "history": ft.Icons.HISTORY_ROUNDED,
+            "sensors": ft.Icons.SENSORS_ROUNDED,
+        }.get(icon_name, ft.Icons.SENSORS_ROUNDED)
+        return ft.Container(
+            padding=14,
+            border_radius=18,
+            bgcolor=ft.Colors.with_opacity(0.06, CHAMPAGNE),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.16, CHAMPAGNE)),
+            content=ft.Row(
+                [
+                    ft.Icon(icon, color=CHAMPAGNE, size=22),
+                    ft.Column(
+                        [
+                            ft.Text(item.get("label", "Modulo"), size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                            ft.Text(item.get("detail", ""), size=12, color=TEXT_MUTED),
+                        ],
+                        spacing=2,
+                        expand=True,
+                    ),
+                ],
+                spacing=12,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+        )

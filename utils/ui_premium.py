@@ -167,6 +167,100 @@ def status_badge(text, tone="neutral"):
     )
 
 
+def severity_style(severity="info"):
+    sev = (severity or "info").lower()
+    styles = {
+        "critical": {
+            "label": "Critica",
+            "tone": "#FFB4B8",
+            "accent": "#F87171",
+            "icon": ft.Icons.PRIORITY_HIGH_ROUNDED,
+        },
+        "warning": {
+            "label": "Atencion",
+            "tone": CHAMPAGNE,
+            "accent": "#F4C76B",
+            "icon": ft.Icons.WARNING_AMBER_ROUNDED,
+        },
+        "info": {
+            "label": "Informativa",
+            "tone": ACCENT,
+            "accent": ACCENT_STRONG,
+            "icon": ft.Icons.NOTIFICATIONS_ACTIVE_ROUNDED,
+        },
+    }
+    return styles.get(sev, styles["info"])
+
+
+def glass_panel(content, width=None, padding=24, border_radius=26, expand=False, col=None, accent=None):
+    accent = accent or CHAMPAGNE
+    return ft.Container(
+        col=col,
+        width=width,
+        expand=expand,
+        padding=padding,
+        border_radius=border_radius,
+        bgcolor=ft.Colors.with_opacity(0.075, ft.Colors.WHITE),
+        border=ft.border.all(1.1, ft.Colors.with_opacity(0.22, accent)),
+        shadow=ft.BoxShadow(
+            spread_radius=0,
+            blur_radius=30,
+            color=ft.Colors.with_opacity(0.28, ft.Colors.BLACK),
+            offset=ft.Offset(0, 16),
+        ),
+        animate_opacity=180,
+        animate_scale=180,
+        content=content,
+    )
+
+
+def severity_badge(severity="info", text=None):
+    style = severity_style(severity)
+    return ft.Container(
+        padding=ft.Padding(12, 7, 12, 7),
+        border_radius=999,
+        bgcolor=ft.Colors.with_opacity(0.12, style["accent"]),
+        border=ft.border.all(1, ft.Colors.with_opacity(0.24, style["tone"])),
+        content=ft.Row(
+            [
+                ft.Icon(style["icon"], size=14, color=style["tone"]),
+                ft.Text(text or style["label"], size=12, weight=ft.FontWeight.BOLD, color=style["tone"]),
+            ],
+            spacing=6,
+            tight=True,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+    )
+
+
+def premium_snackbar(message, ok=True, icon=None):
+    color = "#B8FFE1" if ok else "#FFB4B8"
+    return ft.SnackBar(
+        bgcolor="#071421",
+        elevation=12,
+        duration=3600,
+        content=ft.Container(
+            padding=ft.Padding(4, 2, 4, 2),
+            content=ft.Row(
+                [
+                    ft.Container(
+                        width=34,
+                        height=34,
+                        border_radius=12,
+                        bgcolor=ft.Colors.with_opacity(0.12, color),
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.18, color)),
+                        alignment=ft.alignment.center,
+                        content=ft.Icon(icon or (ft.Icons.CHECK_ROUNDED if ok else ft.Icons.ERROR_OUTLINE_ROUNDED), color=color, size=18),
+                    ),
+                    ft.Text(message, size=13, color=ft.Colors.WHITE, expand=True),
+                ],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+        ),
+    )
+
+
 def premium_card(content, width=None, padding=24, border_radius=26, expand=False, col=None):
     return ft.Container(
         col=col,

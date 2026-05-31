@@ -244,6 +244,12 @@ def PanelEmpleadoView(page: ft.Page, go):
                 "Escanea el QR del cliente al pagar y suma automáticamente sus puntos de fidelidad.",
                 "/empleado_fidelidad",
             ),
+            card_opcion(
+                ft.Icons.FORUM_ROUNDED,
+                "Chat interno",
+                "Comunicate con administracion y grupos operativos de la tienda.",
+                "/chat_interno",
+            ),
         ],
         wrap=True,
         spacing=20,

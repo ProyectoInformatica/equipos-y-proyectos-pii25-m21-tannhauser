@@ -285,6 +285,12 @@ def PanelAdminView(page: ft.Page, go):
                 "Configura reglas y niveles de disparo de alertas automáticas.",
                 "/admin_umbrales",
             ),
+            card_opcion(
+                ft.Icons.FORUM_ROUNDED,
+                "Chat interno",
+                "Crea grupos y coordina comunicaciones internas del equipo.",
+                "/chat_interno",
+            ),
         ],
         wrap=True,
         spacing=20,

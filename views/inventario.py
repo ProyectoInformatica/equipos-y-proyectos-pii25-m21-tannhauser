@@ -2,7 +2,18 @@ import flet as ft
 from mysql.connector import Error
 from models.db import get_connection
 from models.session_manager import get_current_user
-from utils.ui_premium import danger_button, premium_empty_state, premium_text_field, primary_button, secondary_button
+from utils.ui_premium import (
+    ACCENT_STRONG,
+    CHAMPAGNE,
+    danger_button,
+    glass_panel,
+    premium_empty_state,
+    premium_snackbar,
+    premium_text_field,
+    primary_button,
+    secondary_button,
+    status_badge,
+)
 
 
 def InventarioView(page: ft.Page, go, editable: bool = False):
@@ -36,10 +47,7 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
     producto_editando = {"id": None}
 
     def show_message(texto: str, ok: bool = True):
-        page.snack_bar = ft.SnackBar(
-            ft.Text(texto),
-            bgcolor=ft.Colors.GREEN_600 if ok else ft.Colors.RED_600,
-        )
+        page.snack_bar = premium_snackbar(texto, ok=ok)
         page.snack_bar.open = True
         page.update()
 
@@ -231,12 +239,11 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
             conn.close()
 
     def tarjeta_resumen(titulo: str, valor_control: ft.Control):
-        return ft.Container(
+        return glass_panel(
             width=260,
             padding=22,
             border_radius=22,
-            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.08, ft.Colors.WHITE)),
+            accent=CHAMPAGNE if "Valor" in titulo else ACCENT_STRONG,
             content=ft.Column(
                 [
                     ft.Text(titulo, size=14, color=ft.Colors.WHITE60),
@@ -246,10 +253,58 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
             ),
         )
 
+    def producto_visual(producto: dict):
+        text = f"{producto.get('nombre', '')} {producto.get('sku', '')}".lower()
+        rules = [
+            (["lechuga", "tomate", "fruta", "verdura", "fresco", "manzana", "platano"], "Frescos", ft.Icons.ECO_ROUNDED, "#B8FFE1"),
+            (["agua", "bebida", "zumo", "refresco", "leche", "cafe"], "Bebidas", ft.Icons.LOCAL_DRINK_ROUNDED, "#9CEBFF"),
+            (["limpieza", "jabon", "detergente", "desinfect", "papel"], "Limpieza", ft.Icons.CLEANING_SERVICES_ROUNDED, "#D9C8FF"),
+            (["congel", "helado", "frio", "nevera"], "Congelados", ft.Icons.AC_UNIT_ROUNDED, "#BFE8FF"),
+            (["pan", "bolleria", "croissant", "harina"], "Panaderia", ft.Icons.BAKERY_DINING_ROUNDED, "#F5D39A"),
+            (["sensor", "dht", "mq", "hc-sr04", "lcd", "esp32"], "Tecnologia", ft.Icons.MEMORY_ROUNDED, CHAMPAGNE),
+        ]
+        for needles, label, icon, color in rules:
+            if any(needle in text for needle in needles):
+                return label, icon, color
+        return "General", ft.Icons.SHOPPING_BAG_ROUNDED, ACCENT_STRONG
+
+    def visual_producto_control(producto: dict, cantidad: int):
+        categoria, icon, color = producto_visual(producto)
+        return ft.Container(
+            width=86,
+            height=86,
+            border_radius=24,
+            bgcolor=ft.Colors.with_opacity(0.10, color),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.24, color)),
+            shadow=ft.BoxShadow(
+                spread_radius=0,
+                blur_radius=18,
+                color=ft.Colors.with_opacity(0.16, color),
+                offset=ft.Offset(0, 8),
+            ),
+            alignment=ft.alignment.center,
+            content=ft.Stack(
+                [
+                    ft.Icon(icon, color=color, size=42),
+                    ft.Container(
+                        right=0,
+                        bottom=0,
+                        padding=ft.Padding(8, 4, 8, 4),
+                        border_radius=999,
+                        bgcolor="#071421",
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.20, color)),
+                        content=ft.Text(str(cantidad), size=11, weight=ft.FontWeight.BOLD, color=color),
+                    ),
+                ],
+            ),
+            tooltip=categoria,
+        )
+
     def tarjeta_producto(producto: dict):
         cantidad = int(producto.get("cantidad", 0) or 0)
         precio = float(producto.get("precio", 0) or 0)
         activo = bool(producto.get("is_active", 1))
+        categoria, icon, visual_color = producto_visual(producto)
 
         if cantidad <= 5:
             stock_texto = "Stock crítico"
@@ -276,27 +331,16 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
                 ),
             ]
 
-        return ft.Container(
+        return glass_panel(
             padding=20,
             border_radius=24,
-            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.08, ft.Colors.WHITE)),
+            accent=visual_color,
             content=ft.Row(
                 [
-                    ft.Container(
-                        width=58,
-                        height=58,
-                        border_radius=18,
-                        bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.CYAN_200),
-                        alignment=ft.alignment.center,
-                        content=ft.Icon(
-                            ft.Icons.INVENTORY_2_ROUNDED,
-                            color="#8BE3FF",
-                            size=30,
-                        ),
-                    ),
+                    visual_producto_control(producto, cantidad),
                     ft.Column(
                         [
+                            status_badge(categoria, "gold" if visual_color == CHAMPAGNE else "cyan"),
                             ft.Text(
                                 producto.get("nombre", "Producto"),
                                 size=20,
@@ -356,29 +400,18 @@ def InventarioView(page: ft.Page, go, editable: bool = False):
                 spacing=18,
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
             ),
-        ) if not editable else ft.Container(
+        ) if not editable else glass_panel(
             padding=20,
             border_radius=24,
-            bgcolor=ft.Colors.with_opacity(0.08, ft.Colors.WHITE),
-            border=ft.border.all(1, ft.Colors.with_opacity(0.08, ft.Colors.WHITE)),
+            accent=visual_color,
             content=ft.Column(
                 [
                     ft.Row(
                         [
-                            ft.Container(
-                                width=58,
-                                height=58,
-                                border_radius=18,
-                                bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.CYAN_200),
-                                alignment=ft.alignment.center,
-                                content=ft.Icon(
-                                    ft.Icons.INVENTORY_2_ROUNDED,
-                                    color="#8BE3FF",
-                                    size=30,
-                                ),
-                            ),
+                            visual_producto_control(producto, cantidad),
                             ft.Column(
                                 [
+                                    status_badge(categoria, "gold" if visual_color == CHAMPAGNE else "cyan"),
                                     ft.Text(
                                         producto.get("nombre", "Producto"),
                                         size=20,

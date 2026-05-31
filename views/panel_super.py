@@ -164,6 +164,12 @@ def PanelSuperView(page: ft.Page, go):
                 "Configura los valores que disparan alertas automaticas.",
                 "/admin_umbrales",
             ),
+            card_opcion(
+                ft.Icons.FORUM_ROUNDED,
+                "Chat interno",
+                "Supervisa grupos y comunicacion interna de empresa.",
+                "/chat_interno",
+            ),
         ],
         wrap=True,
         spacing=20,

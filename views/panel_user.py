@@ -654,6 +654,13 @@ def PanelUsuarioView(page: ft.Page, go):
                 "Abrir fidelidad",
                 "/fidelidad",
             ),
+            action_card(
+                ft.Icons.FORUM_ROUNDED,
+                "Mensajes",
+                "Consulta conversaciones de soporte o grupos en los que el equipo te haya incluido.",
+                "Abrir mensajes",
+                "/chat_interno",
+            ),
         ],
         spacing=18,
         run_spacing=18,

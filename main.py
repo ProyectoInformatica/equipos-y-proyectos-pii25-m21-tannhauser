@@ -24,6 +24,7 @@ from views.admin_umbrales import AdminUmbralesView
 from views.perfil import PerfilView
 from views.fidelidad import FidelidadView
 from views.energia import EnergiaView
+from views.chat_interno import ChatInternoView
 from controllers.alerta_controller import AlertaController
 from views.empleado_sensores import EmpleadoSensoresView
 from views.empleado_luces import EmpleadoLucesView
@@ -38,6 +39,10 @@ from utils.ui_premium import (
     SURFACE,
     TEXT_MUTED,
     CHAMPAGNE,
+    glass_panel,
+    premium_snackbar,
+    severity_badge,
+    severity_style,
 )
 
 
@@ -188,8 +193,8 @@ def main(page: ft.Page):
     critical_card = ft.Container(
         width=540,
         border_radius=30,
-        bgcolor="#0B1220",
-        border=ft.border.all(1.2, ft.Colors.with_opacity(0.10, ft.Colors.WHITE)),
+        bgcolor=ft.Colors.with_opacity(0.92, "#07111F"),
+        border=ft.border.all(1.2, ft.Colors.with_opacity(0.26, CHAMPAGNE)),
         shadow=ft.BoxShadow(
             spread_radius=0,
             blur_radius=42,
@@ -218,6 +223,11 @@ def main(page: ft.Page):
                     padding=28,
                     content=ft.Column(
                         [
+                            ft.Container(
+                                height=2,
+                                bgcolor=ft.Colors.with_opacity(0.20, CHAMPAGNE),
+                                border_radius=999,
+                            ),
                             premium_alert_badge,
                             critical_eyebrow,
                             critical_title,
@@ -225,7 +235,8 @@ def main(page: ft.Page):
                             ft.Container(
                                 padding=ft.Padding(14, 10, 14, 10),
                                 border_radius=999,
-                                bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE),
+                                bgcolor=ft.Colors.with_opacity(0.07, CHAMPAGNE),
+                                border=ft.border.all(1, ft.Colors.with_opacity(0.14, CHAMPAGNE)),
                                 content=ft.Text(
                                     "Esta alerta requiere intervención inmediata.",
                                     size=12,
@@ -309,7 +320,7 @@ def main(page: ft.Page):
         visible=False,
         width=page.window_width,
         height=page.window_height,
-        bgcolor=ft.Colors.with_opacity(0.68, ft.Colors.BLACK),
+        bgcolor=ft.Colors.with_opacity(0.74, ft.Colors.BLACK),
         alignment=ft.alignment.center,
         content=ft.Stack(
             controls=[
@@ -318,7 +329,7 @@ def main(page: ft.Page):
                     height=620,
                     border_radius=310,
                     blur=120,
-                    bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.RED_300),
+                    bgcolor=ft.Colors.with_opacity(0.06, CHAMPAGNE),
                 ),
                 critical_card,
             ],
@@ -420,23 +431,28 @@ def main(page: ft.Page):
                 go(ruta_destino)
                 mostrar_siguiente_alerta()
 
+            style = severity_style("warning")
             page.banner = ft.Banner(
-                bgcolor=SURFACE,
+                bgcolor="#071421",
                 leading=ft.Container(
-                    width=46,
-                    height=46,
-                    border_radius=16,
-                    bgcolor=ft.Colors.with_opacity(0.13, CHAMPAGNE),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.22, CHAMPAGNE)),
+                    width=52,
+                    height=52,
+                    border_radius=18,
+                    bgcolor=ft.Colors.with_opacity(0.12, style["accent"]),
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.28, style["tone"])),
                     alignment=ft.alignment.center,
-                    content=ft.Icon(
-                        ft.Icons.WARNING_AMBER_ROUNDED,
-                        color=CHAMPAGNE,
-                        size=25,
-                    ),
+                    content=ft.Icon(style["icon"], color=style["tone"], size=27),
                 ),
                 content=ft.Column(
                     [
+                        ft.Row(
+                            [
+                                severity_badge("warning"),
+                                ft.Text("Monitorizacion inteligente", color=ft.Colors.WHITE54, size=12),
+                            ],
+                            spacing=8,
+                            wrap=True,
+                        ),
                         ft.Text(
                             titulo,
                             color=ft.Colors.WHITE,
@@ -445,7 +461,7 @@ def main(page: ft.Page):
                         ),
                         ft.Text(descripcion, color=TEXT_MUTED, size=13),
                     ],
-                    spacing=4,
+                    spacing=6,
                 ),
                 actions=[
                     secondary_button("Cerrar", icon=ft.Icons.CLOSE_ROUNDED, on_click=cerrar_banner),
@@ -462,32 +478,39 @@ def main(page: ft.Page):
             go(ruta_destino)
             mostrar_siguiente_alerta()
 
+        info_style = severity_style("info")
         page.snack_bar = ft.SnackBar(
-            content=ft.Row(
-                [
-                    ft.Container(
-                        width=34,
-                        height=34,
-                        border_radius=12,
-                        bgcolor=ft.Colors.with_opacity(0.12, ft.Colors.CYAN_100),
-                        alignment=ft.alignment.center,
-                        content=ft.Icon(ft.Icons.NOTIFICATIONS_ACTIVE_ROUNDED, color=ft.Colors.CYAN_100, size=18),
-                    ),
-                    ft.Column(
-                        [
-                            ft.Text(titulo, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=13),
-                            ft.Text(descripcion, color=TEXT_MUTED, size=12),
-                        ],
-                        spacing=1,
-                        tight=True,
-                    ),
-                ],
-                spacing=10,
-                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            content=glass_panel(
+                padding=12,
+                border_radius=18,
+                accent=info_style["accent"],
+                content=ft.Row(
+                    [
+                        ft.Container(
+                            width=38,
+                            height=38,
+                            border_radius=14,
+                            bgcolor=ft.Colors.with_opacity(0.13, info_style["accent"]),
+                            alignment=ft.alignment.center,
+                            content=ft.Icon(info_style["icon"], color=info_style["tone"], size=19),
+                        ),
+                        ft.Column(
+                            [
+                                ft.Text(titulo, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=13),
+                                ft.Text(descripcion, color=TEXT_MUTED, size=12),
+                            ],
+                            spacing=1,
+                            tight=True,
+                            expand=True,
+                        ),
+                    ],
+                    spacing=10,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
             ),
             action="Ir al sensor",
             on_action=snack_ir_sensor,
-            bgcolor=SURFACE,
+            bgcolor=ft.Colors.TRANSPARENT,
             duration=4000,
         )
         page.snack_bar.open = True
@@ -727,9 +750,10 @@ def main(page: ft.Page):
         usuario = get_current_user()
 
         def _denegar_acceso():
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Acceso restringido: no tienes permisos para ver esta página."),
-                bgcolor=ft.Colors.RED_600,
+            page.snack_bar = premium_snackbar(
+                "Acceso restringido: no tienes permisos para ver esta pagina.",
+                ok=False,
+                icon=ft.Icons.LOCK_ROUNDED,
             )
             page.snack_bar.open = True
             page.update()
@@ -743,6 +767,11 @@ def main(page: ft.Page):
 
         if r in ["/empleado_sensores", "/empleado_luces", "/empleado_fidelidad"]:
             if not usuario or usuario.get("rol") not in ["empleado", "administrador", "superusuario"]:
+                _denegar_acceso()
+                return
+
+        if r in ["/chat", "/chat_interno"]:
+            if not usuario or usuario.get("rol") not in ["cliente", "empleado", "administrador", "superusuario"]:
                 _denegar_acceso()
                 return
 
@@ -828,6 +857,8 @@ def main(page: ft.Page):
             page.views.append(EmpleadoLucesView(page, go))
         elif r == "/empleado_fidelidad":
             page.views.append(EmpleadoFidelidadView(page, go))
+        elif r in ["/chat", "/chat_interno"]:
+            page.views.append(ChatInternoView(page, go))
         elif r == "/admin_usuarios":
             page.views.append(AdminUsuariosView(page, go))
         elif r == "/admin_logs":
