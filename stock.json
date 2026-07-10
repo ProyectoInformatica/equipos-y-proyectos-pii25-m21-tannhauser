@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "nombre": "Leche",
+        "cantidad": 35
+    },
+    {
+        "id": 2,
+        "nombre": "Pan",
+        "cantidad": 50
+    },
+    {
+        "id": 3,
+        "nombre": "Huevos",
+        "cantidad": 200
+    },
+    {
+        "id": 75,
+        "nombre": "Arroz",
+        "cantidad": 150
+    },
+    {
+        "id": 145,
+        "nombre": "Mermelada",
+        "cantidad": 200
+    },
+    {
+        "id": 200,
+        "nombre": "Cereal",
+        "cantidad": 120
+    }
+]
