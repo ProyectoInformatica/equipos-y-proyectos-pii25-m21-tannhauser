@@ -27,7 +27,7 @@ from controllers.alerta_controller import AlertaController
 from views.empleado_sensores import EmpleadoSensoresView
 from views.empleado_luces import EmpleadoLucesView
 from views.empleado_fidelidad import EmpleadoFidelidadView
-from file_manager import FileManager
+from views.sensores_pulsometro import SensoresPulsometroView
 
 
 def main(page: ft.Page):
@@ -38,8 +38,7 @@ def main(page: ft.Page):
     page.padding = 0
     page.spacing = 0
     page.bgcolor = "#050A12"
-    fm = FileManager()
-    fm.inicializar_tabla_nuevo_sensor()
+
     alerta_controller = AlertaController()
     ultimo_evento_id = {"valor": 0}
     cola_alertas = []
@@ -862,6 +861,8 @@ def main(page: ft.Page):
             page.views.append(ComentariosView(page, go))
         elif r == "/estadisticas_sensores":
             page.views.append(EstadisticasSensoresView(page, go))
+        elif r == "/sensores_pulsometro":
+            page.views.append(SensoresPulsometroView(page, go))
         else:
             page.views.append(
                 ft.View(

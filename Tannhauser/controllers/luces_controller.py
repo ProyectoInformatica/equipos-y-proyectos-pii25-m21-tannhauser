@@ -1,44 +1,9 @@
 import json
 from mysql.connector import Error
-from gpiozero import LED
 from models.db import get_connection
 
 
 class LucesController:
-    def __init__(self):
-        # Asignamos los pines GPIO físicos para cada uno de los 4 LEDs
-        self.luz_1 = LED(17) # Representa la luz 1 en el GPIO 17
-        self.luz_2 = LED(27) # Representa la luz 2 en el GPIO 27
-        self.luz_3 = LED(22) # Representa la luz 3 en el GPIO 22
-        self.luz_4 = LED(23) # Representa la luz 4 en el GPIO 23
-
-        # Agrupamos en una lista para facilitar el control masivo
-        self.luces = [self.luz_1, self.luz_2, self.luz_3, self.luz_4]
-
-    def encender_todas(self):
-        """Enciende los 4 LEDs."""
-        for luz in self.luces:
-            luz.on()
-
-    def apagar_todas(self):
-        """Apaga los 4 LEDs."""
-        for luz in self.luces:
-            luz.off()
-
-    def encender_luz(self, indice):
-        """Enciende una luz específica por su índice (0 a 3)."""
-        if 0 <= indice < len(self.luces):
-            self.luces[indice].on()
-
-    def apagar_luz(self, indice):
-        """Apaga una luz específica por su índice (0 a 3)."""
-        if 0 <= indice < len(self.luces):
-            self.luces[indice].off()
-
-    def obtener_estado_luces(self):
-        """Devuelve el estado actual de las 4 luces en formato de diccionario."""
-        return {f"Luz_{i+1}": luz.is_lit for i, luz in enumerate(self.luces)}
-
     def listar_luces(self):
         conn = get_connection()
         if not conn:
